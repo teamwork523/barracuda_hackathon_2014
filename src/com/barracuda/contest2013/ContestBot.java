@@ -12,10 +12,12 @@ public class ContestBot {
 	private final String host;
 	private final int port;
 	private int game_id = -1;
+	private Cards cardsState;
 
 	public ContestBot(String host, int port) {
 		this.host = host;
 		this.port = port;
+		cardsState = new Cards();
 	}
 
 	private void run() {
@@ -53,23 +55,39 @@ public class ContestBot {
 
 	// roBAst contest bot
 	public PlayerMessage handleMessage(Message message) {
+		System.out.println("----------------------- " + message.type + " --------------------------");
+		if (message.type.equals("request") && game_id != ((MoveMessage)message).state.game_id) {
+			System.out.println("New Cards");
+			cardsState = new Cards();
+		}
+		cardsState.update(message);
+		
 		if (message.type.equals("request")) {
 			MoveMessage m = (MoveMessage)message;
+			//System.out.println("MoveMessage");
+			//m.toString();
+			//System.out.println();
+			// new game
 			if (game_id != m.state.game_id) {
 				game_id = m.state.game_id;
 				System.out.println("new game " + game_id);
 			}
-
+			
+			// offer card and challenge
 			if (m.request.equals("request_card")) {
 				if (! m.state.can_challenge || Math.random() < 0.8) {
 					int i = (int)(Math.random() * m.state.hand.length);
+					System.out.println("Give out card: " +  m.state.hand[i]);
 					return new PlayCardMessage(m.request_id, m.state.hand[i]);
 				}
 				else {
+					System.out.println("Challenge");
 					return new OfferChallengeMessage(m.request_id);
 				}
 			}
+			// challenge offered, accept or reject
 			else if (m.request.equals("challenge_offered")) {
+				System.out.println("Accept Challenge");
 				return new AcceptChallengeMessage(m.request_id);
 				//return (Math.random() < 0.5)
 				//		? new AcceptChallengeMessage(m.request_id)
@@ -77,7 +95,16 @@ public class ContestBot {
 			}
 		}
 		else if (message.type.equals("result")) {
-			//ResultMessage r = (ResultMessage)message;
+			ResultMessage r = (ResultMessage)message;
+			//System.out.println("ResultMessage");
+			//r.toString();
+			//System.out.println();
+			System.out.print("Result type: " + r.result.type);
+			if (r.result.by != null) {
+				System.out.println(" " + r.result.by);
+			} else {
+				System.out.println();
+			}
 		}
 		else if (message.type.equals("error")) {
 			ErrorMessage e = (ErrorMessage)message;
@@ -99,9 +126,9 @@ public class ContestBot {
 
 		String host = args[0];
 		Integer port = Integer.parseInt(args[1]);
-*/
+	 */
 		String host = "cuda.contest";
-		Integer port = Integer.parseInt("9999");
+		Integer port = Integer.parseInt("19999");
 		ContestBot cb = new ContestBot(host, port);
 		cb.run();
 	}
