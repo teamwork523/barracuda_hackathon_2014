@@ -58,10 +58,12 @@ public class Cards {
 		
 		for (int i = 0; i < 5; i++) {
 			myCards.add(new Integer(cards[i]));
+			cardRemain[cards[i]-1]--;
 		}
 	}	
 	
 	public void setAvailCards(int[] cards) {
+		myAvailCards.clear();
 		for (int i = 0; i < cards.length; i++) {
 			myAvailCards.add(new Integer(cards[i]));
 		}
@@ -81,6 +83,7 @@ public class Cards {
 				if (m.state.card > 0) {
 					cardRemain[m.state.card-1]--;
 					allCardNum--;
+					oppoHistory.add(new Integer(m.state.card));
 					myLead = false;
 				} else {
 					myLead = true;
@@ -103,7 +106,11 @@ public class Cards {
 				oppoHistory.clear();
 				myHistory.clear();
 				myCards.clear();
+				myAvailCards.clear();
 				return;
+			}
+			if (r.result.type.equals("trick_tied")) {
+				myHistory.add(new Integer(oppoHistory.get(oppoHistory.size()-1).intValue()));
 			}
 			if (r.result.card != null) {
 				int cardValue = r.result.card.intValue();
@@ -122,6 +129,12 @@ public class Cards {
 	public void updateMyHistory(int no) {
 		if (myLead) {
 			myHistory.add(new Integer(no));
+		}
+		for (int i = 0; i < myAvailCards.size(); i++) {
+			if (myAvailCards.get(i).intValue() == no) {
+				myAvailCards.remove(i);
+				break;
+			}
 		}
 	}
 	
@@ -154,6 +167,7 @@ public class Cards {
 		sb.append("\tMyCards: " + cardArrayToString(myCards));
 		sb.append(" MyHistory: " + cardArrayToString(myHistory));
 		sb.append(" OppoHistory: " + cardArrayToString(oppoHistory) + "\n");
+		sb.append("\tMy Available Cards: " + cardArrayToString(myAvailCards) + "\n");
 		sb.append("\tAll: " + allCardNum + " Hidden: " + hiddenNum + " Lead: " + myLead + "\n");
 		sb.append(cardRemainToString());
 		sb.append("************\n");
