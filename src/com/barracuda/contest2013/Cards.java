@@ -79,6 +79,10 @@ public class Cards {
 		}
 	}
 	
+	public void enableChallangeRequest() {
+		challangeRequest = true;
+	}
+	
 	// every time a message is received, call this function to update
 	public void update(Message message) {
 		if (debugInfo)
@@ -113,7 +117,7 @@ public class Cards {
 			}
 			else if (m.request.equals("challenge_offered")) {
 				//myLead = false;
-				challangeRequest = true;
+				//challangeRequest = true;
 			}
 		}
 		else if (message.type.equals("result")) {
