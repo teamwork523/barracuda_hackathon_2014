@@ -203,6 +203,35 @@ public class Cards {
 		return s;
 	}
 	
+	public boolean isHighestNCard(int cardNo, int n) {
+		int num = n;
+		for (int i = 12; i >= 0; i--) {
+			if (cardNo-1 == i)
+				return true;
+			if (cardRemain[i] != 0) {
+				num--;
+			}
+			if (num == 0)
+				break;
+		}
+		return false;
+	}
+	
+	public boolean isLowestNCard(int cardNo, int n) {
+		int num = n;
+		for (int i = 0; i < 13; i++) {
+			if (cardNo-1 == i) {
+				return true;
+			}
+			if (cardRemain[i] != 0) {
+				num--;
+			}
+			if (num == 0)
+				break;
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("************\nCards state:\n");
