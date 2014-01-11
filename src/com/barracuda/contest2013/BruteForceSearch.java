@@ -18,6 +18,7 @@ public class BruteForceSearch {
 	double[] stwincasetheyfirstratio;
 	int bestwin;
 	int bestwintheyfirst;
+	static boolean usingrand=false;
 	
 	
 	public BruteForceSearch(){
@@ -308,8 +309,10 @@ public class BruteForceSearch {
 		System.out.println("tieratio: "+tieratio);
 		System.out.println("loseratio: "+loseratio);
 		double max=0;
+		int sumwincase=0;
 		for (int i=0;i<cd.myAvailCards.size();i++){
 		    stwincaseratio[i]=stwincase[i]*1.0/sttotalcase;
+		    sumwincase+=stwincase[i];
 	//	    System.out.print(cd.myAvailCards.get(i)+","+stwincaseratio[i]+" ");
 		    if (stwincase[i]>=max 
 		    		&& (cd.myAvailCards.size()<5 || cd.myAvailCards.get(i)<12)
@@ -319,13 +322,30 @@ public class BruteForceSearch {
 		    	bestwin=i;
 		    }
 		}
+		
+		if (usingrand){
+			int rand=(int)(Math.random() * sumwincase);
+			System.out.println("rand: "+rand+ " sumwincase:"+sumwincase);
+			int randsum=0;
+			int i=0;
+			for (;i<cd.myAvailCards.size() && randsum<=rand; i++)
+				randsum+=stwincase[i];	
+			i--;
+			bestwin=i;			
+		}
+		
+		
+		
+		
 	//	if (bestwin < cd.myAvailCards.size())
 	//	System.out.println("; best: "+ cd.myAvailCards.get(bestwin)+" "+max);
 		
 		bestwintheyfirst=0;
 		max=0;
+		sumwincase=0;
 		for (int i=0;i<cd.myAvailCards.size();i++){
 		    stwincasetheyfirstratio[i]=stwincasetheyfirst[i]*1.0/sttotalcase;
+		    sumwincase+=stwincasetheyfirst[i];
 		    System.out.print(cd.myAvailCards.get(i)+","+stwincasetheyfirstratio[i]+" ");
 		    if (stwincasetheyfirst[i]>max 
 		    		&& (cd.myAvailCards.size()<5 || cd.myAvailCards.get(i)<12)
@@ -335,6 +355,18 @@ public class BruteForceSearch {
 		    	bestwintheyfirst=i;
 		    }
 		}
+		
+		if (usingrand){
+			int rand=(int)(Math.random() * sumwincase);
+			System.out.println("rand: "+rand+ " sumwincase:"+sumwincase);
+			int randsum=0;
+			int i=0;
+			for (;i<cd.myAvailCards.size() && randsum<=rand; i++)
+				randsum+=stwincasetheyfirst[i];	
+			i--;
+			bestwintheyfirst=i;			
+		}
+		
 		if (bestwintheyfirst < cd.myAvailCards.size())
 		System.out.println("; best: "+ cd.myAvailCards.get(bestwintheyfirst)+" "+max);
 		
@@ -392,6 +424,23 @@ public class BruteForceSearch {
 		return false;
 		
 	}
+	boolean goodcardfrombegining(MoveMessage m, Cards cd){
+		if (cd.myAvailCards.size()>1){
+			int bigcardnum=0;
+			int bigvalue=11;
+			for (int i=0;i<cd.myAvailCards.size();i++){
+				if (cd.myAvailCards.get(i)>=bigvalue)
+					bigcardnum++;
+			}
+			if (bigcardnum>cd.myAvailCards.size()/2) {
+				return true;
+			}
+		}
+		return false;
+		
+	}
+	
+	
 	public PlayerMessage handleMessage(MoveMessage m, Cards cd) {
 		System.out.println();	
 		System.out.println("new game " + m.state.game_id);
@@ -438,16 +487,18 @@ public class BruteForceSearch {
 					}
 				}
 				else {
-					//bluffing
-					if (curmytrick==curopptrick && lastoppocard<5){
-						System.out.println("bluffing Decision: offer challenge");
-				        cd.enableChallangeRequest();
-					    return new OfferChallengeMessage(m.request_id);
-					}
-					if (m.state.their_points==9){
-						System.out.println("bluffing Decision: offer challenge");
-				        cd.enableChallangeRequest();
-					    return new OfferChallengeMessage(m.request_id);
+					if (m.state.can_challenge){
+						//bluffing
+						if (curmytrick==curopptrick && lastoppocard<5){
+							System.out.println("bluffing Decision: offer challenge");
+					        cd.enableChallangeRequest();
+						    return new OfferChallengeMessage(m.request_id);
+						}
+						if (m.state.their_points==9){
+							System.out.println("bluffing Decision: offer challenge");
+					        cd.enableChallangeRequest();
+						    return new OfferChallengeMessage(m.request_id);
+						}
 					}
 					
 					cd.updateMyHistory(lastmycard);
@@ -467,8 +518,14 @@ public class BruteForceSearch {
 						return new OfferChallengeMessage(m.request_id);
 					}	
 					
+					if (goodcardfrombegining(m,cd)){
+						System.out.println("Decision: offer challenge");
+						cd.enableChallangeRequest();
+						return new OfferChallengeMessage(m.request_id);
+					}
+					
 					//bluffing
-					if (loseratio>0.8 && m.state.their_points ==9){
+					if (loseratio>0.7 && m.state.their_points > m.state.your_points+1){
 						System.out.println("Decision: offer challenge");
 						cd.enableChallangeRequest();
 						return new OfferChallengeMessage(m.request_id);
@@ -488,7 +545,7 @@ public class BruteForceSearch {
 					System.out.println("Decision: PlayCardMessage "+cd.myAvailCards.get(bestwintheyfirst)+" "+bestwintheyfirst);
 					//overide with BA
 				//	bw = findTheBestCard(cd, cd.oppoHistory.get(cd.oppoHistory.size()-1));
-				//	bw = Strategy.findTheLeastBestCard(m.state.hand, m.state.card);
+					bw = refineBW(bw,m,cd);
 					cd.updateMyHistory(bw);					
 					return new PlayCardMessage(m.request_id, bw);
 				}				
@@ -506,6 +563,18 @@ public class BruteForceSearch {
 			}
 			
 			return null;
+	}
+	private int refineBW(int bw, MoveMessage m, Cards cd) {
+		int theircard=cd.oppoHistory.get(cd.oppoHistory.size()-1);
+		if (bw<theircard){
+			int mincard=bw;
+			for (int i=0;i<cd.myAvailCards.size();i++)
+		    if (cd.myAvailCards.get(i)<mincard){
+		    	mincard=cd.myAvailCards.get(i);
+		    }
+            return mincard;
+		}
+		return bw;
 	}
 
 }
