@@ -69,6 +69,7 @@ public class Cards {
 			myHiddenCard[i] = 0;
 		}
 		hiddenNum = 0;
+		myHiddenNum = 0;
 		allCardNum = 99;
 		challangeRequest = false;
 	}
