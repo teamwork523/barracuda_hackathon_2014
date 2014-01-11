@@ -87,7 +87,7 @@ public class Strategy {
     // offer card and challenge
     if (m.request.equals("request_card")) {
       //if (! m.state.can_challenge || Math.random() < 0.8) {
-      if (m.state.can_challenge && !Strategy.restMajorityGreaterThanThreshold(m.state, cardsState, 0.8)) {
+      if (m.state.can_challenge && !restMajorityGreaterThanThreshold(m.state, cardsState, 0.75)) {
           // offer challenge
           if (cardsState.debugInfo)
             System.out.println("Can C?" + m.state.can_challenge + " Challenge >>>>>>>>>>>>>>>>>>>>");
@@ -99,11 +99,11 @@ public class Strategy {
         
         int selectedCard;
         if (cardsState.myLead) {
-          selectedCard = Strategy.findTheSmallestCard(m.state.hand);
+          selectedCard = findTheSmallestCard(m.state.hand);
         } else {
-          selectedCard = Strategy.findTheLeastBestCard(m.state.hand, m.state.card);
+          selectedCard = findTheLeastBestCard(m.state.hand, m.state.card);
         }
-        Strategy.findTheSmallestCard(m.state.hand);
+        findTheSmallestCard(m.state.hand);
         if (cardsState.debugInfo) {
           System.out.print("Hands: ");
           for (int j = 0; j < m.state.hand.length; j++) {
@@ -120,7 +120,10 @@ public class Strategy {
     else if (m.request.equals("challenge_offered")) {
       if (cardsState.debugInfo)
         System.out.println("Accept Challenge <<<<<<<<<<<<<<<<<<");
-      return new AcceptChallengeMessage(m.request_id);
+      if (restMajorityGreaterThanThreshold(m.state, cardsState, 0.75)) {
+        return new AcceptChallengeMessage(m.request_id);
+      }
+      return new RejectChallengeMessage(m.request_id);
       //return (Math.random() < 0.5)
       //    ? new AcceptChallengeMessage(m.request_id)
       //    : new RejectChallengeMessage(m.request_id);
