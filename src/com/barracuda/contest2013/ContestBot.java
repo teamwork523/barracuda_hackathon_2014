@@ -51,6 +51,7 @@ public class ContestBot {
 		}
 	}
 
+	// roBAst contest bot
 	public PlayerMessage handleMessage(Message message) {
 		if (message.type.equals("request")) {
 			MoveMessage m = (MoveMessage)message;
@@ -69,9 +70,10 @@ public class ContestBot {
 				}
 			}
 			else if (m.request.equals("challenge_offered")) {
-				return (Math.random() < 0.5)
-						? new AcceptChallengeMessage(m.request_id)
-						: new RejectChallengeMessage(m.request_id);
+				return new AcceptChallengeMessage(m.request_id);
+				//return (Math.random() < 0.5)
+				//		? new AcceptChallengeMessage(m.request_id)
+				//		: new RejectChallengeMessage(m.request_id);
 			}
 		}
 		else if (message.type.equals("result")) {
