@@ -360,6 +360,11 @@ public class BruteForceSearch {
 	    if (cd.myAvailCards.get(i)>maxcard){
 	    	maxcard=cd.myAvailCards.get(i);
 	    }
+		int maxcardnum=0;
+		for (int i=0;i<cd.myAvailCards.size();i++)
+		    if (cd.myAvailCards.get(i)==maxcard){
+		    	maxcardnum++;
+		    }
 		
 		if (cd.myAvailCards.size()>1){
 			int bigcardnum=0;
@@ -378,7 +383,10 @@ public class BruteForceSearch {
 		if ((m.state.your_tricks-m.state.their_tricks)>= undecideround)
 			return true;
 		
-		if (maxcard>=13 && undecideround<=2)
+		if (maxcard==13 && (maxcardnum+(m.state.your_tricks-m.state.their_tricks))>= undecideround)
+			return true;
+		
+		if (m.state.their_points==9)
 			return true;
 		
 		return false;
@@ -430,6 +438,18 @@ public class BruteForceSearch {
 					}
 				}
 				else {
+					//bluffing
+					if (curmytrick==curopptrick && lastoppocard<5){
+						System.out.println("bluffing Decision: offer challenge");
+				        cd.enableChallangeRequest();
+					    return new OfferChallengeMessage(m.request_id);
+					}
+					if (m.state.their_points==9){
+						System.out.println("bluffing Decision: offer challenge");
+				        cd.enableChallangeRequest();
+					    return new OfferChallengeMessage(m.request_id);
+					}
+					
 					cd.updateMyHistory(lastmycard);
 					System.out.println("Decision: PlayCardMessage "+lastmycard);
 					return new PlayCardMessage(m.request_id, lastmycard);
@@ -441,11 +461,18 @@ public class BruteForceSearch {
 			if (m.request.equals("request_card")) {				
 				if (m.state.can_challenge){
 				//can challenge
-					if (winratio>0.7 && m.state.your_points >= 8){
+					if (winratio>0.7 && m.state.your_points >= 7){
 						System.out.println("Decision: offer challenge");
 						cd.enableChallangeRequest();
 						return new OfferChallengeMessage(m.request_id);
-					}					
+					}	
+					
+					//bluffing
+					if (loseratio>0.8 && m.state.their_points ==9){
+						System.out.println("Decision: offer challenge");
+						cd.enableChallangeRequest();
+						return new OfferChallengeMessage(m.request_id);
+					}
 				}
 				
 				if (m.state.card==0){
@@ -467,7 +494,7 @@ public class BruteForceSearch {
 				}				
 			}
 			else if (m.request.equals("challenge_offered")) {
-				if ((winratio+tieratio) > 0.80 || goodchancetoaccept(m,cd)){
+				if ((winratio+tieratio) > 0.85 || goodchancetoaccept(m,cd)){
 					System.out.println("Decision: Accept challenge");
 					return new AcceptChallengeMessage(m.request_id);
 				}
