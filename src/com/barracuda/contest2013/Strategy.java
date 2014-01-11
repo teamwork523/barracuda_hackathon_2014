@@ -80,4 +80,51 @@ public class Strategy {
     
     return (requiredWinTricksCount > 0) ? true : false;
   }
+  
+  public static PlayerMessage handleMessage(Message message, Cards cardsState) {
+    MoveMessage m = (MoveMessage)message;
+    
+    // offer card and challenge
+    if (m.request.equals("request_card")) {
+      //if (! m.state.can_challenge || Math.random() < 0.8) {
+      if (m.state.can_challenge && !Strategy.restMajorityGreaterThanThreshold(m.state, cardsState, 0.8)) {
+          // offer challenge
+          if (cardsState.debugInfo)
+            System.out.println("Can C?" + m.state.can_challenge + " Challenge >>>>>>>>>>>>>>>>>>>>");
+          return new OfferChallengeMessage(m.request_id);
+      } else {
+        // offer card
+        // int i = (int)(Math.random() * m.state.hand.length);
+        // select the smallest to pick the card
+        
+        int selectedCard;
+        if (cardsState.myLead) {
+          selectedCard = Strategy.findTheSmallestCard(m.state.hand);
+        } else {
+          selectedCard = Strategy.findTheLeastBestCard(m.state.hand, m.state.card);
+        }
+        Strategy.findTheSmallestCard(m.state.hand);
+        if (cardsState.debugInfo) {
+          System.out.print("Hands: ");
+          for (int j = 0; j < m.state.hand.length; j++) {
+            System.out.print(m.state.hand[j] + " ");
+          }
+          System.out.println();
+          System.out.println("Give out card: " +  selectedCard);
+        }
+        cardsState.updateMyHistory(selectedCard);
+        return new PlayCardMessage(m.request_id, selectedCard);
+      }
+    }
+    // challenge offered, accept or reject
+    else if (m.request.equals("challenge_offered")) {
+      if (cardsState.debugInfo)
+        System.out.println("Accept Challenge <<<<<<<<<<<<<<<<<<");
+      return new AcceptChallengeMessage(m.request_id);
+      //return (Math.random() < 0.5)
+      //    ? new AcceptChallengeMessage(m.request_id)
+      //    : new RejectChallengeMessage(m.request_id);
+    }
+    return null;
+  }
 }
