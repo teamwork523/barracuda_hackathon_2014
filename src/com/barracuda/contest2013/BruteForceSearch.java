@@ -141,7 +141,13 @@ public class BruteForceSearch {
 	
 	private void calclld(ArrayList<Integer> myavalcard,	ArrayList<Integer> theircard, int mytrick, int opptrick) {
 		if (theircard.size()!=myavalcard.size()){
-			System.out.print("error in calclld(). The number of two sides does not match");
+			for (int i=0;i<myavalcard.size();i++)
+				System.out.print(myavalcard.get(i)+" ");
+			System.out.print(";");
+			for (int i=0;i<theircard.size();i++)
+				System.out.print(theircard.get(i)+" ");
+			System.out.print(";");
+			System.out.print(theircard.size()+","+myavalcard.size()+" error in calclld(). The number of two sides does not match");
 			return;
 		}
 		int arrlen=myavalcard.size();
@@ -282,7 +288,18 @@ public class BruteForceSearch {
 		
 	}
 	
-	void generatestratio(Cards cd){
+	void generatestratio(MoveMessage m, Cards cd){
+		int maxcard=0;
+		for (int i=0;i<cd.myAvailCards.size();i++)
+		    if (cd.myAvailCards.get(i)>maxcard){
+		    	maxcard=cd.myAvailCards.get(i);
+		    }
+		
+		int undecideround=cd.myAvailCards.size();
+		if (undecideround<(5-cd.oppoHistory.size()))
+			undecideround=(5-cd.oppoHistory.size());
+		
+		
 		winratio=sttotalwincase*1.0/sttotalcase;
 		tieratio=sttotaltiecase*1.0/sttotalcase;
 		loseratio=sttotallosecase*1.0/sttotalcase;
@@ -293,20 +310,79 @@ public class BruteForceSearch {
 		double max=0;
 		for (int i=0;i<cd.myAvailCards.size();i++){
 		    stwincaseratio[i]=stwincase[i]*1.0/sttotalcase;
-		    if (stwincase[i]>max){
+	//	    System.out.print(cd.myAvailCards.get(i)+","+stwincaseratio[i]+" ");
+		    if (stwincase[i]>=max 
+		    		&& (cd.myAvailCards.size()<5 || cd.myAvailCards.get(i)<12)
+		    		&& (cd.myAvailCards.get(i)!=maxcard || maxcard<12 || undecideround<=2)
+		    		){
 		    	max=stwincase[i];
 		    	bestwin=i;
 		    }
 		}
+	//	if (bestwin < cd.myAvailCards.size())
+	//	System.out.println("; best: "+ cd.myAvailCards.get(bestwin)+" "+max);
+		
 		bestwintheyfirst=0;
 		max=0;
 		for (int i=0;i<cd.myAvailCards.size();i++){
 		    stwincasetheyfirstratio[i]=stwincasetheyfirst[i]*1.0/sttotalcase;
-		    if (stwincasetheyfirst[i]>max){
+		    System.out.print(cd.myAvailCards.get(i)+","+stwincasetheyfirstratio[i]+" ");
+		    if (stwincasetheyfirst[i]>max 
+		    		&& (cd.myAvailCards.size()<5 || cd.myAvailCards.get(i)<12)
+		    		&& (cd.myAvailCards.get(i)!=maxcard || maxcard<12 || undecideround<=2)
+		    		){
 		    	max=stwincasetheyfirst[i];
 		    	bestwintheyfirst=i;
 		    }
 		}
+		if (bestwintheyfirst < cd.myAvailCards.size())
+		System.out.println("; best: "+ cd.myAvailCards.get(bestwintheyfirst)+" "+max);
+		
+	}
+	
+/*	int findTheBestCard(Cards cd, int oppocard){
+		
+		bestwintheyfirst=0;
+		int max=0;
+		for (int i=0;i<cd.myAvailCards.size();i++){
+		    if (stwincasetheyfirst[i]>max && cd.myAvailCards.get(i)>=oppocard){
+		    	max=stwincasetheyfirst[i];
+		    	bestwintheyfirst=i;
+		    }
+		}
+		
+	}
+	*/
+	
+	boolean goodchancetoaccept(MoveMessage m, Cards cd){
+		int maxcard=0;
+		for (int i=0;i<cd.myAvailCards.size();i++)
+	    if (cd.myAvailCards.get(i)>maxcard){
+	    	maxcard=cd.myAvailCards.get(i);
+	    }
+		
+		if (cd.myAvailCards.size()>1){
+			int bigcardnum=0;
+			int bigvalue=10;
+			for (int i=0;i<cd.myAvailCards.size();i++){
+				if (cd.myAvailCards.get(i)>=bigvalue)
+					bigcardnum++;
+			}
+			if (bigcardnum>cd.myAvailCards.size()/2)
+				return true;
+		}
+		int undecideround=cd.myAvailCards.size();
+		if (undecideround<(5-cd.oppoHistory.size()))
+			undecideround=(5-cd.oppoHistory.size());
+		
+		if ((m.state.your_tricks-m.state.their_tricks)>= undecideround)
+			return true;
+		
+		if (maxcard>=13 && undecideround<=2)
+			return true;
+		
+		return false;
+		
 	}
 	public PlayerMessage handleMessage(MoveMessage m, Cards cd) {
 		System.out.println();	
@@ -329,7 +405,7 @@ public class BruteForceSearch {
 		    long tobegin=(new Date()).getTime();
 			getResult(m, cd);
 			System.out.println("time: "+ ((new Date()).getTime()-tobegin));
-			generatestratio(cd);
+			generatestratio(m, cd);
 			
 			if (cd.oppoHistory.size()>=5 && m.request.equals("request_card")){
 				System.out.println("cd.oppoHistory.size()>=5");
@@ -344,15 +420,18 @@ public class BruteForceSearch {
 				//we will win
 					if (m.state.can_challenge){
 					  System.out.println("Decision: offer challenge");
+				      cd.enableChallangeRequest();
 					  return new OfferChallengeMessage(m.request_id);
 					}
 					else {
 				      cd.updateMyHistory(lastmycard);
+						System.out.println("Decision: PlayCardMessage "+lastmycard);
 					  return new PlayCardMessage(m.request_id, lastmycard);
 					}
 				}
 				else {
 					cd.updateMyHistory(lastmycard);
+					System.out.println("Decision: PlayCardMessage "+lastmycard);
 					return new PlayCardMessage(m.request_id, lastmycard);
 				}
 				
@@ -362,34 +441,40 @@ public class BruteForceSearch {
 			if (m.request.equals("request_card")) {				
 				if (m.state.can_challenge){
 				//can challenge
-					if (winratio>0.7){
+					if (winratio>0.7 && m.state.your_points >= 8){
 						System.out.println("Decision: offer challenge");
+						cd.enableChallangeRequest();
 						return new OfferChallengeMessage(m.request_id);
 					}					
 				}
 				
 				if (m.state.card==0){
 				//we first
-					cd.updateMyHistory(m.state.hand[bestwin]);
-					System.out.println("Decision: PlayCardMessage "+m.state.hand[bestwin]);
-					return new PlayCardMessage(m.request_id, m.state.hand[bestwin]);									
+					int bw=cd.myAvailCards.get(bestwin);
+					System.out.println("Decision: PlayCardMessage "+cd.myAvailCards.get(bestwin)+" "+bestwin);
+					cd.updateMyHistory(bw);					
+					return new PlayCardMessage(m.request_id, bw);									
 				}
 				else {
 				//they first
-					cd.updateMyHistory(m.state.hand[bestwintheyfirst]);
-					System.out.println("Decision: PlayCardMessage "+m.state.hand[bestwintheyfirst]);
-					return new PlayCardMessage(m.request_id, m.state.hand[bestwintheyfirst]);
+					int bw=cd.myAvailCards.get(bestwintheyfirst);
+					System.out.println("Decision: PlayCardMessage "+cd.myAvailCards.get(bestwintheyfirst)+" "+bestwintheyfirst);
+					//overide with BA
+				//	bw = findTheBestCard(cd, cd.oppoHistory.get(cd.oppoHistory.size()-1));
+				//	bw = Strategy.findTheLeastBestCard(m.state.hand, m.state.card);
+					cd.updateMyHistory(bw);					
+					return new PlayCardMessage(m.request_id, bw);
 				}				
 			}
 			else if (m.request.equals("challenge_offered")) {
-				if (loseratio>0.5){
-					System.out.println("Decision: Reject challenge");
-					return new RejectChallengeMessage(m.request_id);
-				}			
-				else {
+				if ((winratio+tieratio) > 0.80 || goodchancetoaccept(m,cd)){
 					System.out.println("Decision: Accept challenge");
 					return new AcceptChallengeMessage(m.request_id);
 				}
+				else {
+					System.out.println("Decision: Reject challenge");
+					return new RejectChallengeMessage(m.request_id);
+				}	
 			}
 			}
 			

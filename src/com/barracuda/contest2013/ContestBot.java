@@ -115,7 +115,7 @@ public class ContestBot {
 		Integer port = Integer.parseInt(args[1]);
 	 */
 		String host = "cuda.contest";
-		Integer port = Integer.parseInt("19999");
+		Integer port = Integer.parseInt("9999");
 		ContestBot cb = new ContestBot(host, port);
 		cb.run();
 	}
