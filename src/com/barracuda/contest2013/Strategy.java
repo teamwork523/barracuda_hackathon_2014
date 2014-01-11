@@ -70,22 +70,33 @@ public class Strategy {
                                                          Cards cards,
                                                          double threshold) {
     int[] hands = state.hand;
-    //int targetWinTricksCount = state.your_tricks - state.their_tricks;
-    int targetWinTricksCount = 0;
+    int targetWinTricksCount = state.your_tricks - state.their_tricks;
+    
+    if (targetWinTricksCount >= 3) {
+      if (cards.myLead) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    
+    //int targetWinTricksCount = 0;
     
     for (int i = 0; i < hands.length; i++) {
       if (cards.getBiggerProb(hands[i]) > threshold) {
         targetWinTricksCount++;
+      } else {
+        targetWinTricksCount--;
       }
     }
     
-    int requiredWin;
+    int requiredWin = 0;
     
-    if (hands.length == 1) {
+    /*if (hands.length == 1) {
       requiredWin = 0;
     } else {
       requiredWin = hands.length / 2;
-    }
+    }*/
     
     return (targetWinTricksCount > requiredWin) ? true : false;
   }
