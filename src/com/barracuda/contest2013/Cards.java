@@ -33,7 +33,7 @@ public class Cards {
 	
 	public double getBiggerProb(int no) {
 		int num = 0;
-		for (int i = 0; i < no-1; i++) {
+		for (int i = 0; i <= no-1; i++) {
 			num += cardRemain[i];
 		}
 		return (num * 1.0) / (allCardNum * 1.0);
