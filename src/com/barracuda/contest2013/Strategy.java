@@ -70,15 +70,23 @@ public class Strategy {
                                                          Cards cards,
                                                          double threshold) {
     int[] hands = state.hand;
-    int requiredWinTricksCount = state.your_tricks - state.their_tricks;
+    int targetWinTricksCount = state.your_tricks - state.their_tricks;
     
     for (int i = 0; i < hands.length; i++) {
       if (cards.getBiggerProb(hands[i]) > threshold) {
-        requiredWinTricksCount++;
+        targetWinTricksCount++;
       }
     }
     
-    return (requiredWinTricksCount > 0) ? true : false;
+    int requiredWin;
+    
+    if (hands.length == 1) {
+      requiredWin = 0;
+    } else {
+      requiredWin = hands.length / 2;
+    }
+    
+    return (targetWinTricksCount > requiredWin) ? true : false;
   }
   
   public static PlayerMessage handleMessage(Message message, Cards cardsState) {
