@@ -92,14 +92,16 @@ public class ContestBot {
 	}
 
 	public static void main(String[] args) {
-		if (args.length < 2) {
+	/*	if (args.length < 2) {
 			System.err.println("Usage: java -jar ContestBot.jar <HOST> <PORT>");
 			System.exit(1);
 		}
 
 		String host = args[0];
 		Integer port = Integer.parseInt(args[1]);
-
+*/
+		String host = "cuda.contest";
+		Integer port = Integer.parseInt("9999");
 		ContestBot cb = new ContestBot(host, port);
 		cb.run();
 	}
