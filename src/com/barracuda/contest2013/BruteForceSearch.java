@@ -1,12 +1,399 @@
 package com.barracuda.contest2013;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class BruteForceSearch {
 	
-	void getResult(MoveMessage mm, Cards cc){
-		ArrayList<Integer> oph;
+	int sttotalcase;
+	int sttotalwincase;
+	int sttotaltiecase;
+	int sttotallosecase;
+	int[] stwincase;
+	int[] stwincasetheyfirst;
+	double winratio;
+	double tieratio;
+	double loseratio;
+	double[] stwincaseratio;
+	double[] stwincasetheyfirstratio;
+	int bestwin;
+	int bestwintheyfirst;
+	
+	
+	public BruteForceSearch(){
+		sttotalcase=0;
+		sttotalwincase=0;
+		sttotaltiecase=0;
+		sttotallosecase=0;
+		stwincase=new int[5];
+		stwincaseratio=new double[5];
+		stwincasetheyfirst=new int[5];
+		stwincasetheyfirstratio=new double[5];
+		clearst();
+	}
+	void clearst(){
+		sttotalcase=0;
+		sttotalwincase=0;
+		sttotaltiecase=0;
+		sttotallosecase=0;
+		for (int i=0;i<5;i++)
+		  stwincase[i]=0;	
+		for (int i=0;i<5;i++)
+	      stwincasetheyfirst[i]=0;		
+	}
+	
+	void evalWithOppCard(MoveMessage mm, Cards cc, int[] oppcards, int oppcardsnum){
+	/*	System.out.print("old ones: ");
+		for (int i=0;i<oppcardsnum;i++)
+			System.out.print(oppcards[i]+" ");
+		System.out.println();
+		System.out.print("enumrate ones: ");
+		for (int i=oppcardsnum;i<oppcards.length;i++)
+			System.out.print(oppcards[i]+" ");
+		System.out.println();
+		*/
+		ArrayList<Integer> myavalcard=new ArrayList<Integer>(cc.myAvailCards);
+		ArrayList<Integer> oppcard=new ArrayList<Integer>();
+		for (int i=oppcardsnum;i<oppcards.length;i++)
+			oppcard.add(oppcards[i]);
 		
+	//	calclld(myavalcard,oppcard,0,0);
+		int mytrick=mm.state.your_tricks;
+		int opptrick=mm.state.their_tricks;		
+	
+		if (mm.request.equals("request_card")) {
+			if (mm.state.card==0){
+			//me first
+				calclld(myavalcard,oppcard,mytrick,opptrick);
+				
+			}
+			else {
+			//their first
+				int cardot=mm.state.card;
+				for (int i=0;i<myavalcard.size();i++){
+					int mycard=myavalcard.get(i);
+					ArrayList<Integer> newmyavalcard=new ArrayList<Integer>();
+					for (int j=0;j<myavalcard.size();j++) 
+						if (j!=i)
+							newmyavalcard.add(myavalcard.get(j));
+
+
+					int ewincase=sttotalwincase;
+					if (mycard>cardot) calclld(newmyavalcard,oppcard,mytrick+1,opptrick);
+					if (mycard<cardot) calclld(newmyavalcard,oppcard,mytrick,opptrick+1);
+					if (mycard==cardot) calclld(newmyavalcard,oppcard,mytrick,opptrick);
+					stwincasetheyfirst[i]+=sttotalwincase-ewincase;
+			        	
+				}
+			}
+	//		mm.state.can_challenge) 
+
+		}
+		else if (mm.request.equals("challenge_offered")) {
+			if ((oppcard.size()-1)==myavalcard.size()){
+				int cardot=cc.myHistory.get(cc.myHistory.size()-1);
+				for (int i=0;i<oppcard.size();i++){
+					int oppcardnum=oppcard.get(i);
+					ArrayList<Integer> newoppcard=new ArrayList<Integer>();
+					for (int j=0;j<oppcard.size();j++) 
+						if (j!=i)
+							newoppcard.add(oppcard.get(j));
+
+
+					if (cardot>oppcardnum) calclld(myavalcard,newoppcard,mytrick+1,opptrick);
+					if (cardot<oppcardnum) calclld(myavalcard,newoppcard,mytrick,opptrick+1);
+					if (cardot==oppcardnum) calclld(myavalcard,newoppcard,mytrick,opptrick);
+			        	
+				}
+			}
+			else if (oppcard.size()==myavalcard.size()){
+				calclld(myavalcard,oppcard,mytrick,opptrick);
+			}
+			else {
+				System.out.print("error in challenge_offered case. The number of two sides does not match");
+			}
+			
+		}
+	//	*/
+		
+	}
+	
+	
+	boolean genNextPerm(int a[], int n){
+	    int j = n - 2;
+	    while (j >= 0 && a[j] >= a[j+1]) --j;
+	 
+	    if (j < 0) return false;
+	 
+	    int i=n-1;
+	    while (a[j] >= a[i]) --i;
+	 
+	    int t=a[j]; a[j]=a[i]; a[i]=t;
+	 
+	    int l=j+1, r=n-1; 
+	    while (l < r){
+	        t=a[l]; a[l]=a[r]; a[r]=t;
+	        ++l;
+	        --r;
+	    }	 
+	    return true;
+	}
+	
+	private void calclld(ArrayList<Integer> myavalcard,	ArrayList<Integer> theircard, int mytrick, int opptrick) {
+		if (theircard.size()!=myavalcard.size()){
+			System.out.print("error in calclld(). The number of two sides does not match");
+			return;
+		}
+		int arrlen=myavalcard.size();
+		int[] orderarr=new int[5];
+		for (int i=0;i<arrlen;i++) orderarr[i]=i;
+
+	//	System.out.println();
+		do{
+			int tempmytrick=mytrick;
+			int tempopptrick=opptrick;
+			for (int i=0;i<arrlen;i++) {
+			//	System.out.print(myavalcard.get(orderarr[i])+" ");
+			   if (myavalcard.get(orderarr[i]) > theircard.get(i)) 	tempmytrick++;
+			   if (myavalcard.get(orderarr[i]) < theircard.get(i)) 	tempopptrick++;
+			}
+		//	System.out.println();
+	/*		System.out.println();
+			System.out.print("my choice: ");
+			for (int i=0;i<arrlen;i++) {
+				System.out.print(myavalcard.get(orderarr[i])+" ");
+			}
+			System.out.println();
+			System.out.print("their choice: ");
+			for (int i=0;i<arrlen;i++) {
+				System.out.print(theircard.get(i)+" ");
+			}
+			System.out.println();
+			*/
+			sttotalcase++;
+			if (tempmytrick>tempopptrick){
+			//we win				
+				sttotalwincase++;
+				stwincase[orderarr[0]]++;		
+	//			System.out.println();
+	//			System.out.println("win");		
+			}
+			if (tempmytrick<tempopptrick){
+			//we lose			
+				sttotallosecase++;	
+	//			System.out.println();
+	//			System.out.println("lose");	
+				
+			}
+			if (tempmytrick==tempopptrick){
+			//tie				
+				sttotaltiecase++;	
+		//		System.out.println();
+		//		System.out.println("tie");	
+				
+			}
+
+			
+		}
+		while (genNextPerm(orderarr, arrlen));
+		
+		
+		
+	}
+
+	void getResult(MoveMessage mm, Cards cc){
+		ArrayList<Integer> oph=new ArrayList<Integer>();
+		int[] tempcr=new int[13];
+		for (int i=0;i<13;i++)	tempcr[i]=0;
+		int oppcardsnum=cc.oppoHistory.size();
+
+		int[] opharr=new int[5];
+		for (int i=0;i<oppcardsnum;i++)
+			opharr[i]=cc.oppoHistory.get(i);
+		
+		
+		clearst();
+		
+		if (oppcardsnum<5){
+			for (int i5=0;i5<13;i5++){        	
+        		if (tempcr[i5]>=cc.cardRemain[i5]) continue;
+        		opharr[4]=(i5+1);
+        		tempcr[i5]++;
+        		
+        		if (oppcardsnum==4){
+        			evalWithOppCard(mm,cc,opharr,oppcardsnum);
+        		}
+        		else {        		
+	        		for (int i4=i5;i4<13;i4++){
+	        			if (tempcr[i4]>=cc.cardRemain[i4]) continue;
+	            		opharr[3]=(i4+1);
+	            		tempcr[i4]++;
+	            		
+	            		if (oppcardsnum==3){
+	            			evalWithOppCard(mm,cc,opharr,oppcardsnum);
+	            		}
+	            		else {
+		            		for (int i3=i4;i3<13;i3++){
+		            			if (tempcr[i3]>=cc.cardRemain[i3]) continue;
+		                		opharr[2]=(i3+1);
+		                		tempcr[i3]++;
+		                		
+		                		if (oppcardsnum==2){
+			            			evalWithOppCard(mm,cc,opharr,oppcardsnum);
+			            		}
+			            		else {
+			                		for (int i2=i3;i2<13;i2++){
+			                			if (tempcr[i2]>=cc.cardRemain[i2]) continue;
+			                    		opharr[1]=(i2+1);
+			                    		tempcr[i2]++;
+			                    		
+			                    		if (oppcardsnum==1){
+					            			evalWithOppCard(mm,cc,opharr,oppcardsnum);
+					            		}
+					            		else {
+				                    		for (int i1=i2;i1<13;i1++){
+				                    			if (tempcr[i1]>=cc.cardRemain[i1]) continue;
+				                        		opharr[0]=(i1+1);
+				                        		tempcr[i1]++;
+				                        		
+				                        		evalWithOppCard(mm,cc,opharr,oppcardsnum);
+				                        		
+				                        		tempcr[i1]--;
+				                    		}
+					            		}
+			                    		tempcr[i2]--;
+			                		}
+			            		}
+		                		tempcr[i3]--;
+		                		
+		            		}
+	            		}
+	            		
+	            		tempcr[i4]--;
+	        			
+	        		}
+        		}
+        		
+        		tempcr[i5]--;        		
+        		
+        	}
+        	
+        }
+		
+	}
+	
+	void generatestratio(Cards cd){
+		winratio=sttotalwincase*1.0/sttotalcase;
+		tieratio=sttotaltiecase*1.0/sttotalcase;
+		loseratio=sttotallosecase*1.0/sttotalcase;
+		bestwin=0;
+		System.out.println("winratio: "+winratio);
+		System.out.println("tieratio: "+tieratio);
+		System.out.println("loseratio: "+loseratio);
+		double max=0;
+		for (int i=0;i<cd.myAvailCards.size();i++){
+		    stwincaseratio[i]=stwincase[i]*1.0/sttotalcase;
+		    if (stwincase[i]>max){
+		    	max=stwincase[i];
+		    	bestwin=i;
+		    }
+		}
+		bestwintheyfirst=0;
+		max=0;
+		for (int i=0;i<cd.myAvailCards.size();i++){
+		    stwincasetheyfirstratio[i]=stwincasetheyfirst[i]*1.0/sttotalcase;
+		    if (stwincasetheyfirst[i]>max){
+		    	max=stwincasetheyfirst[i];
+		    	bestwintheyfirst=i;
+		    }
+		}
+	}
+	public PlayerMessage handleMessage(MoveMessage m, Cards cd) {
+		System.out.println();	
+		System.out.println("new game " + m.state.game_id);
+		System.out.print("my card: ");
+		for (int i=0;i<cd.myHistory.size();i++){
+			System.out.print(cd.myHistory.get(i)+" ");
+		}
+		System.out.print(" | ");
+		for (int i=0;i<cd.myAvailCards.size();i++){
+			System.out.print(cd.myAvailCards.get(i)+" ");
+		}
+		System.out.println();
+		System.out.print("opp card: ");
+		for (int i=0;i<cd.oppoHistory.size();i++){
+			System.out.print(cd.oppoHistory.get(i)+" ");
+		}
+		System.out.println();
+		
+		    long tobegin=(new Date()).getTime();
+			getResult(m, cd);
+			System.out.println("time: "+ ((new Date()).getTime()-tobegin));
+			generatestratio(cd);
+			
+			if (cd.oppoHistory.size()>=5 && m.request.equals("request_card")){
+				System.out.println("cd.oppoHistory.size()>=5");
+				int lastmycard=cd.myAvailCards.get(cd.myAvailCards.size()-1);
+				int lastoppocard=cd.oppoHistory.get(cd.oppoHistory.size()-1);
+				int curmytrick=m.state.your_tricks;
+				int curopptrick=m.state.their_tricks;
+				if (lastmycard>lastoppocard) curmytrick++;
+				if (lastmycard<lastoppocard) curopptrick++;
+				
+				if (curmytrick>curopptrick){
+				//we will win
+					if (m.state.can_challenge){
+					  System.out.println("Decision: offer challenge");
+					  return new OfferChallengeMessage(m.request_id);
+					}
+					else {
+				      cd.updateMyHistory(lastmycard);
+					  return new PlayCardMessage(m.request_id, lastmycard);
+					}
+				}
+				else {
+					cd.updateMyHistory(lastmycard);
+					return new PlayCardMessage(m.request_id, lastmycard);
+				}
+				
+			}
+			else {
+			
+			if (m.request.equals("request_card")) {				
+				if (m.state.can_challenge){
+				//can challenge
+					if (winratio>0.7){
+						System.out.println("Decision: offer challenge");
+						return new OfferChallengeMessage(m.request_id);
+					}					
+				}
+				
+				if (m.state.card==0){
+				//we first
+					cd.updateMyHistory(m.state.hand[bestwin]);
+					System.out.println("Decision: PlayCardMessage "+m.state.hand[bestwin]);
+					return new PlayCardMessage(m.request_id, m.state.hand[bestwin]);									
+				}
+				else {
+				//they first
+					cd.updateMyHistory(m.state.hand[bestwintheyfirst]);
+					System.out.println("Decision: PlayCardMessage "+m.state.hand[bestwintheyfirst]);
+					return new PlayCardMessage(m.request_id, m.state.hand[bestwintheyfirst]);
+				}				
+			}
+			else if (m.request.equals("challenge_offered")) {
+				if (loseratio>0.5){
+					System.out.println("Decision: Reject challenge");
+					return new RejectChallengeMessage(m.request_id);
+				}			
+				else {
+					System.out.println("Decision: Accept challenge");
+					return new AcceptChallengeMessage(m.request_id);
+				}
+			}
+			}
+			
+			return null;
 	}
 
 }

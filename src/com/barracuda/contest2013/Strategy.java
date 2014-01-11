@@ -72,7 +72,7 @@ public class Strategy {
     int[] hands = state.hand;
     int targetWinTricksCount = state.your_tricks - state.their_tricks;
     
-    if (targetWinTricksCount >= 3) {
+    if (targetWinTricksCount >= 3 && (cards.allCardNum - cards.hiddenNum > 20)) {
       if (cards.myLead) {
         return false;
       } else {
@@ -83,9 +83,9 @@ public class Strategy {
     //int targetWinTricksCount = 0;
     
     for (int i = 0; i < hands.length; i++) {
-      if (cards.getBiggerProb(hands[i]) > threshold) {
+      if (cards.isHighestNCard(hands[i], 2) || cards.getBiggerProb(hands[i]) > threshold) {
         targetWinTricksCount++;
-      } else {
+      } else if (cards.isLowestNCard(hands[i], 2) || cards.getBiggerProb(hands[i]) <= threshold) {
         targetWinTricksCount--;
       }
     }

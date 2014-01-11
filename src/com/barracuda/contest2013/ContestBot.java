@@ -55,6 +55,7 @@ public class ContestBot {
 
 	// roBAst contest bot
 	public PlayerMessage handleMessage(Message message) {
+		cardsState.debugInfo=false;
 		if (cardsState.debugInfo)
 			System.out.println("----------------------- " + message.type + " --------------------------");
 		if (message.type.equals("request") && game_id != ((MoveMessage)message).state.game_id) {
@@ -77,7 +78,8 @@ public class ContestBot {
 			}
 			
 			// Heurstic Strategy
-			return Strategy.handleMessage(m, cardsState);
+		//	return Strategy.handleMessage(m, cardsState);
+			return (new BruteForceSearch()).handleMessage(m, cardsState);
 		}
 		else if (message.type.equals("result")) {
 			ResultMessage r = (ResultMessage)message;
