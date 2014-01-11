@@ -97,7 +97,7 @@ public class Cards {
 				}
 			}
 			else if (m.request.equals("challenge_offered")) {
-				myLead = false;
+				//myLead = false;
 			}
 		}
 		else if (message.type.equals("result")) {
@@ -117,8 +117,10 @@ public class Cards {
 				return;
 			}
 			if (r.result.type.equals("trick_tied")) {
-				if (debugInfo)
+				if (debugInfo) {
 					System.out.println("Trick_tied");
+					System.out.println(this.toString());
+				}
 				int cardValue;
 				if (myLead) {
 					cardValue = myHistory.get(myHistory.size()-1).intValue();
