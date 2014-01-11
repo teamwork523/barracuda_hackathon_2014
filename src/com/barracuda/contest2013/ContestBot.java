@@ -77,6 +77,11 @@ public class ContestBot {
 			if (m.request.equals("request_card")) {
 				if (! m.state.can_challenge || Math.random() < 0.8) {
 					int i = (int)(Math.random() * m.state.hand.length);
+					System.out.print("Hands: ");
+					for (int j = 0; j < m.state.hand.length; j++) {
+						System.out.print(m.state.hand[j] + " ");
+					}
+					System.out.println();
 					System.out.println("Give out card: " +  m.state.hand[i]);
 					return new PlayCardMessage(m.request_id, m.state.hand[i]);
 				}
