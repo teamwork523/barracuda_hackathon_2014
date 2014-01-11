@@ -7,6 +7,7 @@ public class Cards {
 	public int[] myHiddenCard;
 	public int allCardNum; // sum of cardRemain, including hidden cards
 	public int hiddenNum;
+	public int myHiddenNum;
 	public static boolean myLead;
 	public boolean challangeRequest;
 	public boolean debugInfo = true;
@@ -169,6 +170,7 @@ public class Cards {
 			// hand_done
 			if (r.result.type.equals("hand_done")) {
 				hiddenNum += (5 - oppoHistory.size());
+				myHiddenNum += myAvailCards.size();
 				addMyHiddenCard();
 				if (allCardNum - hiddenNum <= 4) {
 					// new shuffle cards
