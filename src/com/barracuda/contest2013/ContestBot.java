@@ -62,6 +62,7 @@ public class ContestBot {
 			cardsState = new Cards();
 		}
 		cardsState.update(message);
+		System.out.println(cardsState.isHighestNCard(6, 7) + "\t" + cardsState.isLowestNCard(7, 6));
 		
 		if (cardsState.debugInfo)
 			System.out.print(cardsState.toString());
@@ -112,7 +113,7 @@ public class ContestBot {
 		Integer port = Integer.parseInt(args[1]);
 	 */
 		String host = "cuda.contest";
-		Integer port = Integer.parseInt("9999");
+		Integer port = Integer.parseInt("19999");
 		ContestBot cb = new ContestBot(host, port);
 		cb.run();
 	}
