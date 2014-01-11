@@ -13,7 +13,7 @@ public class ContestBot {
 	private final int port;
 	private int game_id = -1;
 	private Cards cardsState;
-	private boolean debugInfo = true;
+	private boolean debugInfo = false;
 	
 	public ContestBot(String host, int port) {
 		this.host = host;
