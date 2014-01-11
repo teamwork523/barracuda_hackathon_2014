@@ -11,6 +11,7 @@ public class Cards {
 	public ArrayList<Integer> oppoHistory;
 	public ArrayList<Integer> myHistory;
 	public ArrayList<Integer> myCards; // sorted, from smallest to biggest
+	public ArrayList<Integer> myAvailCards;
 	
 	public Cards() {
 		cardRemain = new int[13];
@@ -19,13 +20,14 @@ public class Cards {
 		oppoHistory = new ArrayList<Integer>();
 		myHistory  = new ArrayList<Integer>();
 		myCards = new ArrayList<Integer>();
+		myAvailCards = new ArrayList<Integer>();
 	}
 	
 	public void resetCards() {
 		for (int i = 0; i < 13; i++)
 			cardRemain[i] = 8;
 		hiddenNum = 0;
-		allCardNum = 104;
+		allCardNum = 99;
 	}
 	
 	public double getBiggerProb(int no) {
@@ -44,7 +46,7 @@ public class Cards {
 	// num of cards must be 5
 	public void addCard(int[] cards){
 		int tmp = 0;
-		for (int i = 3; i >= 0; i++) {
+		for (int i = 3; i >= 0; i--) {
 			for (int j = 0; j <= i; j++) {
 				if (cards[j] > cards[j+1]) {
 					tmp = cards[j];
@@ -59,12 +61,19 @@ public class Cards {
 		}
 	}	
 	
+	public void setAvailCards(int[] cards) {
+		for (int i = 0; i < cards.length; i++) {
+			myAvailCards.add(new Integer(cards[i]));
+		}
+	}
+	
 	// every time a message is received, call this function to update
 	public void update(Message message) {
 		if (message.type.equals("request")) {
 			MoveMessage m = (MoveMessage)message;
 			if (m.request.equals("request_card")) {
 				// beginning of the game, add cards in myCard
+				setAvailCards(m.state.hand);
 				if (m.state.hand.length == 5) {
 					addCard(m.state.hand);
 				}
@@ -76,12 +85,16 @@ public class Cards {
 				} else {
 					myLead = true;
 				}
-			}			
+			}
+			else if (m.request.equals("challenge_offered")) {
+				myLead = false;
+			}
 		}
 		else if (message.type.equals("result")) {
 			ResultMessage r = (ResultMessage)message;
 			// hand_done
 			if (r.result.type.equals("hand_done")) {
+				hiddenNum += (5 - oppoHistory.size());
 				if (allCardNum - hiddenNum <= 4) {
 					// new shuffle cards
 					resetCards();
@@ -106,16 +119,44 @@ public class Cards {
 		}
 	}
 	
-	public void printCardArray(ArrayList<Integer> array) {
-		for (int i = 0; i < array.size(); i++) {
-			System.out.print(array.get(i) + " ");
+	public void updateMyHistory(int no) {
+		if (myLead) {
+			myHistory.add(new Integer(no));
 		}
+	}
+	
+	public String cardArrayToString(ArrayList<Integer> array) {
+		String s = new String("");
+		for (int i = 0; i < array.size(); i++) {
+			s += (array.get(i) + " ");
+		}
+		return s;
+	}
+	
+	public String cardRemainToString() {
+		String s = new String("\t");
+		for (int i = 0; i < 13; i++) {
+			s += ((i+1) + " ");
+		}
+		s += "\n\t";
+		for (int i = 0; i < 13; i++) {
+			s += (cardRemain[i] + " ");
+			if (i >= 9)
+				s += " ";
+		}
+		s += "\n";
+		return s;
 	}
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("Cards state:\n");
-
+		StringBuilder sb = new StringBuilder("************\nCards state:\n");
+		sb.append("\tMyCards: " + cardArrayToString(myCards));
+		sb.append(" MyHistory: " + cardArrayToString(myHistory));
+		sb.append(" OppoHistory: " + cardArrayToString(oppoHistory) + "\n");
+		sb.append("\tAll: " + allCardNum + " Hidden: " + hiddenNum + " Lead: " + myLead + "\n");
+		sb.append(cardRemainToString());
+		sb.append("************\n");
 		return sb.toString();
 	}
 
