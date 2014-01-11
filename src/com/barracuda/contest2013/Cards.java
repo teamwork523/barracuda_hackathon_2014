@@ -1,14 +1,16 @@
 package com.barracuda.contest2013;
 
+import java.util.ArrayList;
+
 public class Cards {
 	public int[] cardRemain; // 0-12 -> 1-13
 	public int allCardNum; 
 	public int hiddenNum;
 	public boolean handDone;
 	
-	public int[] oppoHistory;
-	public int[] myHistory;
-	public int[] myCards;
+	public ArrayList<Integer> oppoHistory;
+	public ArrayList<Integer> myHistory;
+	public ArrayList<Integer> myCards;
 	
 	public Cards() {
 		cardRemain = new int[13];
@@ -17,14 +19,14 @@ public class Cards {
 		hiddenNum = 0;
 		allCardNum = 104;
 		
-		oppoHistory = new int[5];
-		myHistory  = new int[5];
-		myCards = new int[5];
+		//oppoHistory = new int[5];
+		//myHistory  = new int[5];
+		//myCards = new int[5];
 		
 		for (int i = 0; i < 5; i++) {
-			oppoHistory[i] = 0;
-			myHistory[i] = 0;
-			myCards[i] = 0;
+			//oppoHistory[i] = 0;
+			//myHistory[i] = 0;
+			//myCards[i] = 0;
 		}
 	}
 	
