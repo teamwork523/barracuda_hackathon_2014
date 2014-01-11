@@ -108,10 +108,12 @@ public class Cards {
 					} else {
 						myLead = true;
 					}
+					challangeRequest = false;
 				}
 			}
 			else if (m.request.equals("challenge_offered")) {
 				//myLead = false;
+				challangeRequest = true;
 			}
 		}
 		else if (message.type.equals("result")) {
@@ -123,6 +125,7 @@ public class Cards {
 					// new shuffle cards
 					resetCards();
 				}
+				challangeRequest = false;
 				allCardNum -= 5;
 				oppoHistory.clear();
 				myHistory.clear();
