@@ -1,10 +1,14 @@
 package com.barracuda.contest2013;
 
 public class Cards {
-	private int[] cardRemain; // 0-12 -> 1-13
-	private int allCardNum; 
-	private int hiddenNum;
-	private boolean handDone;	
+	public int[] cardRemain; // 0-12 -> 1-13
+	public int allCardNum; 
+	public int hiddenNum;
+	public boolean handDone;
+	
+	public int[] oppoHistory;
+	public int[] myHistory;
+	public int[] myCards;
 	
 	public Cards() {
 		cardRemain = new int[13];
@@ -12,6 +16,16 @@ public class Cards {
 			cardRemain[i] = 8;
 		hiddenNum = 0;
 		allCardNum = 104;
+		
+		oppoHistory = new int[5];
+		myHistory  = new int[5];
+		myCards = new int[5];
+		
+		for (int i = 0; i < 5; i++) {
+			oppoHistory[i] = 0;
+			myHistory[i] = 0;
+			myCards[i] = 0;
+		}
 	}
 	
 	public double getBiggerProb(int no) {
@@ -26,6 +40,7 @@ public class Cards {
 	public int getRemain(int no) {
 		return cardRemain[no-1];
 	}
+	
 	
 	// every time a message is received, call this function to update
 	public void update(Message message) {
