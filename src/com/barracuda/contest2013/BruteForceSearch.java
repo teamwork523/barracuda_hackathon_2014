@@ -408,6 +408,18 @@ public class BruteForceSearch {
 			if (bigcardnum>cd.myAvailCards.size()/2)
 				return true;
 		}
+		
+		if (m.state.your_points>=9){
+			int bigcardnum=0;
+			int bigvalue=9;
+			for (int i=0;i<cd.myAvailCards.size();i++){
+				if (cd.myAvailCards.get(i)>=bigvalue)
+					bigcardnum++;
+			}
+			if (bigcardnum>cd.myAvailCards.size()/2)
+				return true;
+		}
+		
 		int undecideround=cd.myAvailCards.size();
 		if (undecideround<(5-cd.oppoHistory.size()))
 			undecideround=(5-cd.oppoHistory.size());
