@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<!-- saved from url=(0031)http://cuda.contest/umich/rules -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Rules</title>
+        <script type="text/javascript" src="./Rules_files/beacon.js"></script><script src="./Rules_files/jquery.min.js"></script>
+        <link rel="stylesheet" href="./Rules_files/contest.css" type="text/css" media="all" charset="utf-8">
+        
+
+<style>
+.card {
+  border: 1px solid black;
+  width: 115px;
+  height: 170px;
+  color: #0677B4;
+  font-weight: bold;
+  background: url('../static/img/card_pattern.png');
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border: 20px solid white;
+  border-radius: 12px;
+  text-align: right;
+  margin-left: 10px;
+  font-size: 150%;
+  padding-right: 55px;
+  transition: all .5s;
+  -webkit-box-shadow: 3px 4px 10px 2px #838383;
+  box-shadow: 3px 4px 10px 2px #838383;
+}
+.game_field {
+   width: 100%;
+   position: relative;
+   height: 525px;
+}
+
+.player0_cards {
+   position: absolute;
+   left: 10px;
+   width: 145px;
+   text-align: center
+}
+
+.player1_cards {
+   position: absolute;
+   right: 10px;
+   width: 145px;
+   text-align: center;
+}
+
+.player_gutter {
+    text-align: center;
+    position: absolute;
+}
+
+.active_field {
+    position: absolute;
+    left: 175px;
+    right: 175px;
+    top: 300px;
+    text-align: center
+}
+
+.card0 {
+    position: absolute;
+    top: 50px;
+    margin-right: 1em;
+}
+
+.card1 {
+    position: absolute;
+    top: 100px;
+}
+
+.card2 {
+    position: absolute;
+    top: 150px;
+}
+
+.card3 {
+    position: absolute;
+    top: 200px;
+}
+
+.card4 {
+    position: absolute;
+    top: 250px;
+}
+
+.card_taken {
+    opacity: 0;
+    transition: opacity .2s ease .3s;
+}
+
+.card_insta_taken {
+    display: none;
+}
+
+.player0_cards .card_in_play {
+    left: 145px;
+    top: 100px;
+}
+
+.player1_cards .card_in_play {
+    right: 145px;
+    top: 100px;
+}
+
+.player1_message {
+    position: absolute;
+    text-align: right;
+    right: 0px;
+    width: 50%;
+}
+
+.player0_message {
+    position: absolute;
+    text-align: left;
+    width: 50%;
+}
+
+.game_message {
+    position: absolute;
+    text-align: center;
+    top: 3em;
+    left: 0;
+    right: 0;
+}
+
+.controls {
+    position: absolute;
+    top: 450px;
+    left: 200px;
+    right: 200px;
+    text-align: center;
+    color: #0477B6;
+    font-size: 18px;
+}
+
+.player0_scores {
+    position: absolute;
+    left: 0;
+    top: 7em;
+    text-align: left;
+}
+
+.player1_scores {
+    position: absolute;
+    right: 0;
+    text-align: right;
+    top: 7em;
+}
+
+.player0_penalty {
+    position: absolute;
+    left: 0;
+    top: 8em;
+    text-align: left;
+}
+
+.player1_penalty {
+    position: absolute;
+    right: 0;
+    top: 8em;
+    text-align: right;
+}
+
+.game_challenge {
+    position: absolute;
+    right: 0;
+    left: 0;
+    width: 100%;
+    top: 75px;
+    color: red;
+}
+
+.p0_challenges {
+    text-align: left;
+}
+
+.p1_challenges {
+    text-align: right;
+}
+
+.penalty {
+    color: red;
+    font-weight: bold;
+}
+
+.card_bad_penalty {
+    display: none;
+}
+
+.card_good_penalty {
+    display: none;
+}
+.h2_subtitle {
+    font-size: 20px;
+    font-weight: normal;
+    text-transform: uppercase;
+    color: rgb(24, 117, 187);
+    margin-bottom: 20px;
+}
+
+.rules_body {
+    margin-left: 60px;
+}
+
+.rules_body ul {
+    margin-left: 50px;
+    margin-bottom: 20px;
+}
+</style>
+
+<script>
+// state:
+// cards (array of values or undefined)
+// p0 card and where it came from
+// p1 card and where it came from
+// p0 challenge
+// p1 challenge
+// p0 accept
+// p1 accept
+// p0 game score
+// p1 game score
+// p0 hand score
+// p1 hand score
+
+// if there's an error in the game play, call this
+var error_callback;
+
+var IN_HAND = 0;
+var ON_TABLE = 1;
+var TAKEN = 2;
+var PENALTY_BAD_REMOVE = 3;
+var PENALTY_GOOD_REMOVE = 4;
+var SUPER_TAKEN = 5;
+
+var initial_state = {
+    "p0": {
+        "cards": [],
+        "card_states": [IN_HAND, IN_HAND, IN_HAND, IN_HAND, IN_HAND],
+        "message": "",
+        "message_class": "",
+        "card_out": undefined,
+        "trick_score": 0,
+        "hand_score": 0,
+        "round_score": 0,
+        "penalty": false
+    },
+    "p1": {
+        "cards": [],
+        "card_states": [IN_HAND, IN_HAND, IN_HAND, IN_HAND, IN_HAND],
+        "message": "",
+        "message_class": "",
+        "challenge": false,
+        "card_out": undefined,
+        "trick_score": 0,
+        "hand_score": 0,
+        "round_score": 0,
+        "penalty": false
+    },
+    "game": {
+        "in_challenge": -1,
+        "message": "",
+        "message_class": ""
+    }
+};
+
+var boardinfos = {};
+
+function new_board_info (name, h) {
+    var new_initial_state = $.extend(true, {}, initial_state);
+    new_initial_state.p0.cards = h[0].player0_hand;
+    new_initial_state.p1.cards = h[0].player1_hand;
+    return boardinfos[name] = {state_idx: 0, states: [new_initial_state]};
+}
+
+function set_player_hand (board, player, cards, card_states) {
+    for (var idx in cards) {
+        var card = $("#player" + player + "_card" + idx + "_" + board);
+        card.text(cards[idx])
+
+        card.removeClass("card_in_play");
+        card.removeClass("card_taken");
+        card.removeClass("card_bad_penalty");
+        card.removeClass("card_good_penalty");
+        card.removeClass("card_insta_taken");
+
+        var card_state = card_states[idx];
+        if (card_state == IN_HAND) {
+            // no class change
+        } else if (card_state == ON_TABLE) {
+            card.addClass("card_in_play");
+        } else if (card_state == TAKEN) {
+            card.addClass("card_taken card_in_play");
+        } else if (card_state == PENALTY_BAD_REMOVE) {
+            card.addClass("card_bad_penalty");
+        } else if (card_state == PENALTY_GOOD_REMOVE) {
+            card.addClass("card_good_penalty");
+        } else if (card_state == SUPER_TAKEN) {
+            card.addClass("card_insta_taken card_in_play")
+        }
+    }
+}
+
+function set_to_state (board, state) {
+    set_player_hand(board, 0, state.p0.cards, state.p0.card_states);
+    set_player_hand(board, 1, state.p1.cards, state.p1.card_states);
+
+    $("#player0_message_" + board).attr({"class": state.p0.message_class + " player0_message"}).text(state.p0.message);
+    $("#player1_message_" + board).attr({"class": state.p1.message_class + " player1_message"}).text(state.p1.message);
+    $("#game_message_" + board).attr({"class": state.game.message_class + " game_message"}).text(state.game.message);
+
+    $("#player0_tricks_" + board).text(state.p0.trick_score);
+    $("#player1_tricks_" + board).text(state.p1.trick_score);
+    $("#player0_hands_" + board).text(state.p0.hand_score);
+    $("#player1_hands_" + board).text(state.p1.hand_score);
+    $("#player0_rounds_" + board).text(state.p0.round_score);
+    $("#player1_rounds_" + board).text(state.p1.round_score);
+
+    $("#player0_penalty_" + board).text(state.p0.penalty ? "Penalty" : "");
+    $("#player1_penalty_" + board).text(state.p1.penalty ? "Penalty" : "");
+
+    if (state.game.in_challenge == 0) {
+        $("#game_challenge_" + board).addClass("p0_challenges");
+        $("#game_challenge_" + board).removeClass("p1_challenges");
+        $("#game_challenge_" + board).text("Challenge");
+    } else if (state.game.in_challenge == 1) {
+        $("#game_challenge_" + board).removeClass("p0_challenges");
+        $("#game_challenge_" + board).addClass("p1_challenges");
+        $("#game_challenge_" + board).text("Challenge");
+    } else {
+        $("#game_challenge_" + board).removeClass("p0_challenges");
+        $("#game_challenge_" + board).removeClass("p1_challenges");
+        $("#game_challenge_" + board).text("");
+    }
+}
+
+function next_state (board, keep_messages) {
+    // ugh, hack; if the previous change was a penalty, merge
+    // the penalty information with the error information, since we
+    // get them in two messages
+    var states = boardinfos[board].states;
+    var prev_state = states[states.length-1];
+
+    if (prev_state.extend_with_next) {
+        prev_state.extend_with_next = false;
+        return prev_state;
+    }
+
+    var new_state = $.extend(true, {}, prev_state);
+    states.push(new_state);
+    prev_state = new_state;
+
+    // this makes the messages "naturally" transient
+    if (!keep_messages) {
+        new_state.p0.message = "";
+        new_state.p0.message_class = "";
+        new_state.p0.penalty = false;
+        new_state.p1.message = "";
+        new_state.p1.message_class = "";
+        new_state.p1.penalty = false;
+        new_state.game.message = "";
+        new_state.game.message_class = "";
+    }
+
+    return prev_state;
+}
+
+function find_card (board, player, card) {
+    // find the index of the card we are playing
+    var states = boardinfos[board].states;
+    var prev_state = states[states.length-1]
+    var player_state = prev_state["p" + player];
+
+    for (var idx in player_state.cards) {
+        if (player_state.card_states[idx] == IN_HAND &&
+            player_state.cards[idx] == card) {
+            return idx;
+        }
+    }
+
+    alert("Failure to find the card for player " + player + ": card " + card);
+    if (error_callback) {
+        error_callback()
+    }
+}
+
+function set_card_state_by_card (board, player, card, state, card_is_out) {
+    var card_idx = find_card(board, player, card);
+
+    var states = boardinfos[board].states;
+    var new_state = states[states.length-1];
+    var new_player_state = new_state["p" + player];
+    new_player_state.card_states[card_idx] = state;
+    if (card_is_out) {
+        new_player_state.card_out = card_idx;
+    } else {
+        new_player_state.card_out = undefined;
+    }
+}
+
+function process_states (board, history) {
+    var new_state;
+    new_board_info(board, history);
+    for (var idx in history) {
+        if (idx == 0) {
+            continue; // already initialized based on this
+        }
+
+        // process all the history for how they advance the state
+        var change = history[idx];
+        process_next_change(board, change)
+    }
+}
+
+function process_next_change (board, change) {
+    var new_state = undefined;
+
+    if (change.type == "player_move") {
+        if (change.move.type == "play_card") {
+            new_state = next_state(board);
+            set_card_state_by_card(board, change.moving_player, change.move.card, ON_TABLE, true)
+        } else if (change.move.type == "offer_challenge") {
+            new_state = next_state(board);
+            new_state["p" + change.moving_player].message = "Challenging";
+            new_state["p" + change.moving_player].message_class = "challenge";
+        } else if (change.move.type == "reject_challenge") {
+            new_state = next_state(board, true);
+            new_state["p" + change.moving_player].message = "Rejected";
+            new_state["p" + change.moving_player].message_class = "challenge_rejected";
+        } else if (change.move.type == "accept_challenge") {
+            new_state = next_state(board, true);
+            new_state["p" + change.moving_player].message = "Accepted";
+            new_state["p" + change.moving_player].message_class = "challenge_accepted";
+            new_state.game.in_challenge = 1 - change.moving_player;
+        } else if (change.move.type == "illegal_move") {
+            new_state = next_state(board);
+            new_state.extend_with_next = true; // merges with penalty
+            new_state["p" + change.moving_player].message = change.move.reason;
+            new_state["p" + change.moving_player].message_class = "penalty";
+        } else {
+            alert("What's a " + change.move.type + "?");
+            if (error_callback) {
+                error_callback()
+            }
+            return;
+        }
+    } else if (change.type == "trick_over") {
+        new_state = next_state(board);
+        if (change.won_by == 0) {
+            new_state.p0.message = "Won Trick";
+            new_state.p0.message_class = "won_trick";
+        } else if (change.won_by == 1) {
+            new_state.p1.message = "Won Trick";
+            new_state.p1.message_class = "won_trick";
+        } else {
+            new_state.game.message = "Trick Tied";
+            new_state.game.message_class = "trick_tied";
+        }
+        if (new_state.p0.card_out !== undefined) {
+            new_state.p0.card_states[new_state.p0.card_out] = TAKEN;
+            new_state.p1.card_states[new_state.p1.card_out] = TAKEN;
+        }
+        new_state.p0.card_out = undefined;
+        new_state.p1.card_out = undefined;
+        new_state.p0.trick_score = change.player0_tricks;
+        new_state.p1.trick_score = change.player1_tricks;
+    } else if (change.type == "new_hand_score") {
+        new_state = next_state(board);
+        new_state.p0.hand_score = change.player0_score;
+        new_state.p1.hand_score = change.player1_score;
+        new_state.p0.trick_score = 0;
+        new_state.p1.trick_score = 0;
+    } else if (change.type == "new_round_score") {
+        new_state = next_state(board);
+        new_state.p0.round_score = change.player0_score;
+        new_state.p1.round_score = change.player1_score;
+        new_state.p0.trick_score = 0;
+        new_state.p1.trick_score = 0;
+        new_state.p0.hand_score = 0;
+        new_state.p1.hand_score = 0;
+    } else if (change.type == "new_hand") {
+        new_state = next_state(board);
+        new_state.p0.cards = change.player0_hand;
+        new_state.p1.cards = change.player1_hand;
+        new_state.p0.card_states = [IN_HAND, IN_HAND, IN_HAND, IN_HAND, IN_HAND];
+        new_state.p1.card_states = [IN_HAND, IN_HAND, IN_HAND, IN_HAND, IN_HAND];
+        new_state.game.in_challenge = -1;
+    } else if (change.type == "final_game_result") {
+        new_state = next_state(board);
+        new_state.game.message = "Player " + change.winner + " Wins!";
+        new_state.game.message_class = "game_winner";
+    } else if (change.type == "penalty_result") {
+        new_state = next_state(board);
+        new_state["p" + change.penalized_player].penalty = true;
+        if (new_state.p0.card_out) {
+            new_state.p0.card_states[new_state.p0.card_out] = IN_HAND;
+            new_state.p0.card_out = undefined;
+        }
+        if (new_state.p1.card_out) {
+            new_state.p1.card_states[new_state.p1.card_out] = IN_HAND;
+            new_state.p1.card_out = undefined;
+        }
+        set_card_state_by_card(board, 0, change.player0_removed_card,
+                               change.penalized_player == 0 ? PENALTY_BAD_REMOVE : PENALTY_GOOD_REMOVE);
+        set_card_state_by_card(board, 1, change.player1_removed_card,
+                               change.penalized_player == 1 ? PENALTY_BAD_REMOVE : PENALTY_GOOD_REMOVE);
+    } else {
+        new_state = next_state(board);
+
+        return;
+    }
+}
+
+</script>
+
+
+<style>
+.languages tr td {
+    padding-top: 1em;
+    vertical-align: top;
+}
+
+blockquote {
+    margin-left: 2em;
+    font-style: italic;
+    padding-bottom: 1em;
+}
+</style>
+
+<script>
+function next (board) {
+    if (boardinfos[board].state_idx < boardinfos[board].states.length) {
+        boardinfos[board].state_idx += 1;
+        set_to_state(board, boardinfos[board].states[boardinfos[board].state_idx]);
+    }
+    if ($("#autoadvance_" + board)[0].checked) {
+        clearTimeout(timeoutTokens[board]);
+        timeoutTokens[board] = setTimeout(function () {next(board)}, move_interval);
+    }
+}
+
+function prev (board) {
+    if (boardinfos[board].state_idx > 0) {
+        boardinfos[board].state_idx -= 1;
+        set_to_state(board, boardinfos[board].states[boardinfos[board].state_idx]);
+    }
+    $("#autoadvance_" + board)[0].checked = false;
+    clearTimeout(timeoutTokens[board]);
+    timeoutToken[board] = undefined;
+}
+
+function autoadvance (c, board) {
+    if (c.checked) {
+        if (!timeoutTokens[board]) {
+            timeoutTokens[board] = setTimeout(function () {next(board)}, move_interval);
+        }
+    } else {
+        clearTimeout(timeoutTokens[board]);
+        timeoutTokens[board] = undefined;
+    }
+}
+
+var timeoutTokens = {}
+</script>
+
+
+    </head>
+
+    <body class="old-ui" onload="document.getElementById(&#39;body&#39;).focus();">
+        
+
+	<div id="cloud_banner" class="cloud_html5_header">
+            <div class="banner_inner">
+	       <a href="http://cuda.contest/">
+		<div class="cloud_subtitle">
+		  <img src="./Rules_files/2013.png">
+		  <h3>U of M Programming Contest</h3>
+		</div>
+		</a>
+                <a id="cloud_logo" href="http://cuda.contest/">Barracuda Networks</a>
+            </div>
+        </div>
+        <div id="cloud_banner_bottom"></div>	
+
+        <div id="cloud_nav" class="cloud_html5_nav">
+            <div id="cloud_service_links">&nbsp;</div>
+            <div id="cloud_page_links">&nbsp;</div>
+        </div>
+        
+
+        <div class="cloud_page">
+            <div class="cloud_panel_wrapper">
+                <div id="cloud_panel_login" class="cloud_panel">
+                    <div class="cloud_title">
+                        <h2>Rules and Specification</h2>
+                    </div>
+
+                    <div class="cloud_panel_body" id="body" style="overflow: auto">
+                        <div id="login_pane" class="cloud_panel_pane">
+                            <div id="users_pane_body">
+                                
+
+<h2>The Game</h2>
+
+<p>The game is a card game that is played with a standard deck of
+52 cards (no jokers). Only the rank is used, the suit does not matter. For
+simplicity, we will use the numbers 1 through 13 to represent the cards.</p>
+
+<p>The game consists of a series of <b>hands</b>. Each hand may result
+in:</p>
+
+<ul><li>A <b>point</b> being awarded to either one or zero players</li>
+<li>Ending the <b>game</b> due to an accepted challenge and a player winning the hand</li>
+<li>Ending the <b>game</b> due to one player accumulating enough <b>points</b>.</li></ul>
+
+<p>In a hand, each player will be dealt 5 cards from the deck. The
+winner of the previous hand will choose their action first. For the first
+hand, the first player will be chosen such that as we proceed through the
+games in a round, the initial lead will rotate for each player. The player
+with the lead may either choose to <b>play a card</b> on to the game field,
+or <b>issue a challenge</b>.</p>
+
+<p>If a card is played, the opposing player chooses an action. If there
+have been no challenges in this game, the player may now issue a challenge
+themselves, or choose to play a card. Otherwise, they must play a card.</p>
+
+<p>When both players have played a card on to the field, the player who
+plays the highest card <b>wins the trick</b>, and the lead for the next
+trick. If the two cards have the same value, neither player wins the trick,
+and the lead does not change.</p>
+
+<p>In the event of a challenge being issue, the other player is forced to
+make one of two choices:</p>
+
+<ul><li><b>Reject</b> the challenge. If this is chosen, the hand ends
+immediately, and a point is awarded to the <b>challenger</b>. You do not
+get to see whatever remaining cards your opponent may have.</li>
+
+<li><b>Accept</b> the challenge. If this is chosen, the hand is played out
+normally, and <b>the winner of this hand wins the game</b>.</li></ul>
+
+<p>As long as no challenge is rejected, play continues until all five
+tricks have been played. Any player may issue a challenge, so long
+as no challenge been issued in this hand.</p>
+
+<p>Once all five tricks have been played, one of two things happens:</p>
+
+<ul><li>If a challenge was issued, the player with the most tricks
+immediately wins this game. If Player 0 has one trick and Player 1 has
+zero, Player 0 wins; it is strictly the <i>most</i> tricks, not the
+majority of tricks played. If the players have a tied number of tricks,
+nobody receives any points, nobody wins the game, and play proceeds on
+as if the entire hand had not occurred.</li>
+
+<li>If a challenge was not issued, the player with the most tricks receives
+a <b>point</b>. If the players have tied the number of tricks they have
+taken, nobody receives a point.</li></ul>
+
+<p>If a player reaches 10 points, they win the game.</p>
+
+<p>If no player has won, each player receives five new cards from the
+remaining unshuffled deck, and the next hand is played. Two standard-sized
+decks are used for this game. The deck will be shuffled when it no longer
+has sufficient cards to deal to the players. (That is, when 10 hands have
+been played, and 4 cards are remaining, all 104 cards will be reshuffled,
+and play will resume. We do not deal out the 4 cards, then shuffle the
+100, then deal the remaining cards.)</p>
+
+<h3>Penalties</h3>
+
+<blockquote>"To err is human. To screw up a million times per second, you
+need a computer."</blockquote>
+
+<p>Since we're playing with computer programs, we have to account for those
+extra-special computers-only failures. Your computer player may fail to make
+a legal move (play a card you don't have, make a currently-invalid move,
+etc.), fail to return something the server can understand, or take too long
+to respond. In the event that your computer program fails to make a correct
+move, you will be penalized in the following manner:</p>
+
+<ul><li>If you have an opportunity to play a card, and you fail, your
+highest card will be removed from your hand, the lowest card will be
+removed from your opponent's hand, and your opponent will win the trick.
+If this was not the last trick, your opponent will also receive the lead
+for the next trick.</li>
+
+<li>If you are currently responding to a challenge request, an illegal move
+is equivalent to rejecting the challenge.</li></ul>
+
+<p>You begin each <b>game</b> with 2 seconds to make a move. For each of
+the first 100 moves you successfully make, you receive an additional 50
+milliseconds. After that you will receive no more time. When a move is
+requested, you will also receive an <i>approximate</i> specification of how
+much time you have remaining. Bear in mind that due to network delays,
+general timing inaccuracies, etc., you can not count on being able to wait
+the full period of time that you receive to reply. Once you have run out
+of time, you will no longer be asked to make moves for that game. You
+will penalized each time.</p>
+
+<p>The purpose of these times is to ensure that the final tournament is
+played at a reasonable pace, so we can not practically loosen them.
+While you are allowed to open port forwards to machines outside of
+the contest network so they can play, you will not receive extra time.
+This means it is probably practical to use machines that are also on the
+University network, but may make it impractical to use resources any
+more remote than that.</p>
+
+<p>In order to prevent hammering on the server, you client must wait
+at least 5 seconds between connection attempts, or the server will
+deny your connection. For each attempt to connect before the 5 seconds
+is up, the timer is reset, so a client that is hammering on the server
+will never be accepted. All clients shipped by Barracuda will wait
+properly, so in order for this to happen, you must have broken the code.
+You will need to fix it to continue.</p>
+
+<h3>Rounds</h3>
+
+In the general play period and during the tournament, games will be
+organized into <b>rounds</b>. Rounds consist of a series of games, which
+will be used to determine who won. The rules are as follows:
+
+<ul><li>If a player gets a 5 game lead over their opponent, they win the
+round.</li>
+
+<li>The first player to 21 games won wins the round.</li></ul>
+
+<h3>Contest Structure</h3>
+
+<p>During the initial phase of the contest, the contest server will
+continuously match up players that are connected to the server and play
+them against each other using the rules specified above. The players will
+be ranked on an ongoing basis using a scoring system similar to the one
+used by the chess community.</p>
+
+<p>In the final hour of open play, the game scheduling algorithm will stop
+taking into account whether or not you are connected, and all
+participating teams will be forced to play. If you are not online when
+you are scheduled to play, you will simply lose.</p>
+
+<p>At the end of that hour, the scheduler will be turned off, and the
+standings at that point will be used to seed the final single elimination
+tournament. At this point you <i>must</i> at least be connected, or you
+will not have a place in the final standings.</p>
+
+<h1>Examples</h1>
+
+<p>This is an example of a normal <b>hand</b>. It ends with the score
+board showing the left player with 1 point.</p>
+
+
+    <div id="game_field_normal" class="game_field">
+  <div id="player0_cards_normal" class="player_gutter player0_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player0_card card card0" id="player0_card0_normal">12</div>
+    <div class="player0_card card card1" id="player0_card1_normal">9</div>
+    <div class="player0_card card card2" id="player0_card2_normal">8</div>
+    <div class="player0_card card card3" id="player0_card3_normal">8</div>
+    <div class="player0_card card card4" id="player0_card4_normal">1</div>
+  </div>
+
+  <div id="player1_cards_normal" class="player_gutter player1_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player1_card card card0" id="player1_card0_normal">6</div>
+    <div class="player2_card card card1" id="player1_card1_normal">6</div>
+    <div class="player3_card card card2" id="player1_card2_normal">4</div>
+    <div class="player4_card card card3" id="player1_card3_normal">2</div>
+    <div class="player5_card card card4" id="player1_card4_normal">1</div>
+  </div>
+
+  <div id="active_field_normal" class="active_field">
+    <div id="player0_message_normal" class=" player0_message"></div>
+    <div id="player1_message_normal" class=" player1_message"></div>
+    <div id="game_message_normal" class=" game_message"></div>
+    <div id="game_challenge_normal" class="game_challenge"></div>
+    <div id="score_normal">
+      <div id="player0_scores_normal" class="player0_scores">
+                                Tricks: <span id="player0_tricks_normal">0</span>
+                                Points: <span id="player0_hands_normal">0</span>
+                                <span style="display: none">Games: <span id="player0_rounds_normal">0</span></span>
+</div>
+      <div id="player1_scores_normal" class="player1_scores">
+                                Tricks: <span id="player1_tricks_normal">0</span>
+                                Points: <span id="player1_hands_normal">0</span>
+                                <span style="display: none">Games: <span id="player1_rounds_normal">0</span></span>
+</div>
+      <div id="player0_penalty_normal" class="penalty player0_penalty"></div>
+      <div id="player1_penalty_normal" class="penalty player1_penalty"></div>
+    </div>
+
+  </div>
+
+  <div id="controls_normal" class="controls">
+    
+    <hr>
+    <input type="button" value="prev" onclick="prev(&#39;normal&#39;)">
+    <input type="button" value="next" onclick="next(&#39;normal&#39;)">
+  </div>
+</div>
+
+
+
+<script>
+process_states("normal", [
+  {"player0_hand":[12,9,8,8,1],"player1_hand":[6,6,4,2,1],"next_player":0,"type":"new_hand"},
+  {"move":{"card":12,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":6,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":1,"type":"trick_over"},
+  {"move":{"card":9,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":2,"type":"trick_over"},
+  {"move":{"card":8,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":2,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":3,"type":"trick_over"},
+  {"move":{"card":8,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":4,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":4,"type":"trick_over"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":6,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":1,"won_by":1,"player0_tricks":4,"type":"trick_over"},
+  {"player0_score":1,"type":"new_hand_score","player1_score":0}
+])
+set_to_state("normal", boardinfos["normal"].states[0])
+</script>
+
+<p>Here is a hand in which the player issues a challenge, but the opponent
+rejects it. Note how the challenger is given the point:</p>
+
+
+    <div id="game_field_rejected" class="game_field">
+  <div id="player0_cards_rejected" class="player_gutter player0_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player0_card card card0" id="player0_card0_rejected">12</div>
+    <div class="player0_card card card1" id="player0_card1_rejected">9</div>
+    <div class="player0_card card card2" id="player0_card2_rejected">8</div>
+    <div class="player0_card card card3" id="player0_card3_rejected">8</div>
+    <div class="player0_card card card4" id="player0_card4_rejected">1</div>
+  </div>
+
+  <div id="player1_cards_rejected" class="player_gutter player1_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player1_card card card0" id="player1_card0_rejected">6</div>
+    <div class="player2_card card card1" id="player1_card1_rejected">6</div>
+    <div class="player3_card card card2" id="player1_card2_rejected">4</div>
+    <div class="player4_card card card3" id="player1_card3_rejected">2</div>
+    <div class="player5_card card card4" id="player1_card4_rejected">1</div>
+  </div>
+
+  <div id="active_field_rejected" class="active_field">
+    <div id="player0_message_rejected" class=" player0_message"></div>
+    <div id="player1_message_rejected" class=" player1_message"></div>
+    <div id="game_message_rejected" class=" game_message"></div>
+    <div id="game_challenge_rejected" class="game_challenge"></div>
+    <div id="score_rejected">
+      <div id="player0_scores_rejected" class="player0_scores">
+                                Tricks: <span id="player0_tricks_rejected">0</span>
+                                Points: <span id="player0_hands_rejected">0</span>
+                                <span style="display: none">Games: <span id="player0_rounds_rejected">0</span></span>
+</div>
+      <div id="player1_scores_rejected" class="player1_scores">
+                                Tricks: <span id="player1_tricks_rejected">0</span>
+                                Points: <span id="player1_hands_rejected">0</span>
+                                <span style="display: none">Games: <span id="player1_rounds_rejected">0</span></span>
+</div>
+      <div id="player0_penalty_rejected" class="penalty player0_penalty"></div>
+      <div id="player1_penalty_rejected" class="penalty player1_penalty"></div>
+    </div>
+
+  </div>
+
+  <div id="controls_rejected" class="controls">
+    
+    <hr>
+    <input type="button" value="prev" onclick="prev(&#39;rejected&#39;)">
+    <input type="button" value="next" onclick="next(&#39;rejected&#39;)">
+  </div>
+</div>
+
+
+
+<script>
+process_states("rejected", [
+  {"player0_hand":[12,9,8,8,1],"player1_hand":[6,6,4,2,1],"next_player":0,"type":"new_hand"},
+  {"move":{"card":12,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":6,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":1,"type":"trick_over"},
+  {"move":{"card":9,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":2,"type":"trick_over"},
+  {"type":"player_move","move":{"type":"offer_challenge"},"moving_player":0},
+  {"type":"player_move","move":{"type":"reject_challenge"},"moving_player":1},
+  {"player0_score":1,"type":"new_hand_score","player1_score":0}
+])
+set_to_state("rejected", boardinfos["rejected"].states[0])
+</script>
+
+<p>Here is a hand in which a player issues a challenge, which the opponent
+accepts. Note at the end, the entire game is over.</p>
+
+
+    <div id="game_field_accepted" class="game_field">
+  <div id="player0_cards_accepted" class="player_gutter player0_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player0_card card card0" id="player0_card0_accepted">12</div>
+    <div class="player0_card card card1" id="player0_card1_accepted">9</div>
+    <div class="player0_card card card2" id="player0_card2_accepted">8</div>
+    <div class="player0_card card card3" id="player0_card3_accepted">8</div>
+    <div class="player0_card card card4" id="player0_card4_accepted">1</div>
+  </div>
+
+  <div id="player1_cards_accepted" class="player_gutter player1_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player1_card card card0" id="player1_card0_accepted">6</div>
+    <div class="player2_card card card1" id="player1_card1_accepted">6</div>
+    <div class="player3_card card card2" id="player1_card2_accepted">4</div>
+    <div class="player4_card card card3" id="player1_card3_accepted">2</div>
+    <div class="player5_card card card4" id="player1_card4_accepted">1</div>
+  </div>
+
+  <div id="active_field_accepted" class="active_field">
+    <div id="player0_message_accepted" class=" player0_message"></div>
+    <div id="player1_message_accepted" class=" player1_message"></div>
+    <div id="game_message_accepted" class=" game_message"></div>
+    <div id="game_challenge_accepted" class="game_challenge"></div>
+    <div id="score_accepted">
+      <div id="player0_scores_accepted" class="player0_scores">
+                                Tricks: <span id="player0_tricks_accepted">0</span>
+                                Points: <span id="player0_hands_accepted">0</span>
+                                <span style="display: none">Games: <span id="player0_rounds_accepted">0</span></span>
+</div>
+      <div id="player1_scores_accepted" class="player1_scores">
+                                Tricks: <span id="player1_tricks_accepted">0</span>
+                                Points: <span id="player1_hands_accepted">0</span>
+                                <span style="display: none">Games: <span id="player1_rounds_accepted">0</span></span>
+</div>
+      <div id="player0_penalty_accepted" class="penalty player0_penalty"></div>
+      <div id="player1_penalty_accepted" class="penalty player1_penalty"></div>
+    </div>
+
+  </div>
+
+  <div id="controls_accepted" class="controls">
+    
+    <hr>
+    <input type="button" value="prev" onclick="prev(&#39;accepted&#39;)">
+    <input type="button" value="next" onclick="next(&#39;accepted&#39;)">
+  </div>
+</div>
+
+
+
+<script>
+process_states("accepted", [
+  {"player0_hand":[12,9,8,8,1],"player1_hand":[6,6,4,2,1],"next_player":0,"type":"new_hand"},
+  {"move":{"card":12,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":6,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":1,"type":"trick_over"},
+  {"move":{"card":9,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":2,"type":"trick_over"},
+  {"type":"player_move","move":{"type":"offer_challenge"},"moving_player":0},
+  {"type":"player_move","move":{"type":"accept_challenge"},"moving_player":1},
+  {"move":{"card":8,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":2,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":3,"type":"trick_over"},
+  {"move":{"card":8,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":4,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":4,"type":"trick_over"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":6,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":1,"won_by":1,"player0_tricks":4,"type":"trick_over"},
+  {"player0_score":1,"player1_score":0,"winner": 0,"type":"final_game_result"}
+])
+set_to_state("accepted", boardinfos["accepted"].states[0])
+</script>
+
+<p>Here is a hand in which a player issues a challenge, and the opponent
+errors out by losing its connection. Note how with the first error, the left
+player still wins the trick, even though the penalty removed a 1 from
+their hand and a 6 from the right player. It is <i>never</i> to your advantage
+to make an error.</p>
+
+
+    <div id="game_field_errors" class="game_field">
+  <div id="player0_cards_errors" class="player_gutter player0_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player0_card card card0" id="player0_card0_errors">12</div>
+    <div class="player0_card card card1" id="player0_card1_errors">9</div>
+    <div class="player0_card card card2" id="player0_card2_errors">8</div>
+    <div class="player0_card card card3" id="player0_card3_errors">2</div>
+    <div class="player0_card card card4" id="player0_card4_errors">1</div>
+  </div>
+
+  <div id="player1_cards_errors" class="player_gutter player1_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player1_card card card0" id="player1_card0_errors">6</div>
+    <div class="player2_card card card1" id="player1_card1_errors">6</div>
+    <div class="player3_card card card2" id="player1_card2_errors">4</div>
+    <div class="player4_card card card3" id="player1_card3_errors">2</div>
+    <div class="player5_card card card4" id="player1_card4_errors">1</div>
+  </div>
+
+  <div id="active_field_errors" class="active_field">
+    <div id="player0_message_errors" class=" player0_message"></div>
+    <div id="player1_message_errors" class=" player1_message"></div>
+    <div id="game_message_errors" class=" game_message"></div>
+    <div id="game_challenge_errors" class="game_challenge"></div>
+    <div id="score_errors">
+      <div id="player0_scores_errors" class="player0_scores">
+                                Tricks: <span id="player0_tricks_errors">0</span>
+                                Points: <span id="player0_hands_errors">0</span>
+                                <span style="display: none">Games: <span id="player0_rounds_errors">0</span></span>
+</div>
+      <div id="player1_scores_errors" class="player1_scores">
+                                Tricks: <span id="player1_tricks_errors">0</span>
+                                Points: <span id="player1_hands_errors">0</span>
+                                <span style="display: none">Games: <span id="player1_rounds_errors">0</span></span>
+</div>
+      <div id="player0_penalty_errors" class="penalty player0_penalty"></div>
+      <div id="player1_penalty_errors" class="penalty player1_penalty"></div>
+    </div>
+
+  </div>
+
+  <div id="controls_errors" class="controls">
+    
+    <hr>
+    <input type="button" value="prev" onclick="prev(&#39;errors&#39;)">
+    <input type="button" value="next" onclick="next(&#39;errors&#39;)">
+  </div>
+</div>
+
+
+
+<script>
+process_states("errors", [
+  {"player0_hand":[12,9,8,2,1],"player1_hand":[6,6,4,2,1],"next_player":0,"type":"new_hand"},
+  {"move":{"card":12,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":6,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":1,"type":"trick_over"},
+  {"move":{"card":9,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":2,"type":"trick_over"},
+  {"type":"player_move","move":{"type":"offer_challenge"},"moving_player":0},
+  {"type":"player_move","move":{"type":"accept_challenge"},"moving_player":1},
+  {"move":{"card":8,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":2,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":3,"type":"trick_over"},
+  {"move":{"card":2,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"reason":"Illegal move received: IllegalMove \"Client not currently connected\"","type":"illegal_move"},"moving_player":1,"type":"player_move"},
+  {"penalized_player":1,"player1_removed_card":6,"type":"penalty_result","player0_removed_card":1},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":4,"type":"trick_over"},
+
+  {"move":{"card":2,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"reason":"Illegal move received: IllegalMove \"Client not currently connected\"","type":"illegal_move"},"moving_player":1,"type":"player_move"},
+  {"penalized_player":1,"player1_removed_card":4,"type":"penalty_result","player0_removed_card":2},
+  {"player1_tricks":0,"won_by":0,"player0_tricks":5,"type":"trick_over"},
+  {"player0_score":1,"player1_score":0,"winner": 0,"type":"final_game_result"}
+])
+set_to_state("errors", boardinfos["errors"].states[0])
+</script>
+
+<p>Here is a hand in which, by <i>amazing</i> coincidence, every trick is a
+tie, resulting in nobody getting any hands. If this were a real match,
+play would continue on as if the challenge had not occurred.</p>
+
+
+    <div id="game_field_ties" class="game_field">
+  <div id="player0_cards_ties" class="player_gutter player0_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player0_card card card0" id="player0_card0_ties">12</div>
+    <div class="player0_card card card1" id="player0_card1_ties">9</div>
+    <div class="player0_card card card2" id="player0_card2_ties">8</div>
+    <div class="player0_card card card3" id="player0_card3_ties">8</div>
+    <div class="player0_card card card4" id="player0_card4_ties">1</div>
+  </div>
+
+  <div id="player1_cards_ties" class="player_gutter player1_cards">
+    <a href="http://cuda.contest/umich/team/"></a>
+    <div class="player1_card card card0" id="player1_card0_ties">12</div>
+    <div class="player2_card card card1" id="player1_card1_ties">9</div>
+    <div class="player3_card card card2" id="player1_card2_ties">8</div>
+    <div class="player4_card card card3" id="player1_card3_ties">8</div>
+    <div class="player5_card card card4" id="player1_card4_ties">1</div>
+  </div>
+
+  <div id="active_field_ties" class="active_field">
+    <div id="player0_message_ties" class=" player0_message"></div>
+    <div id="player1_message_ties" class=" player1_message"></div>
+    <div id="game_message_ties" class=" game_message"></div>
+    <div id="game_challenge_ties" class="game_challenge"></div>
+    <div id="score_ties">
+      <div id="player0_scores_ties" class="player0_scores">
+                                Tricks: <span id="player0_tricks_ties">0</span>
+                                Points: <span id="player0_hands_ties">0</span>
+                                <span style="display: none">Games: <span id="player0_rounds_ties">0</span></span>
+</div>
+      <div id="player1_scores_ties" class="player1_scores">
+                                Tricks: <span id="player1_tricks_ties">0</span>
+                                Points: <span id="player1_hands_ties">0</span>
+                                <span style="display: none">Games: <span id="player1_rounds_ties">0</span></span>
+</div>
+      <div id="player0_penalty_ties" class="penalty player0_penalty"></div>
+      <div id="player1_penalty_ties" class="penalty player1_penalty"></div>
+    </div>
+
+  </div>
+
+  <div id="controls_ties" class="controls">
+    
+    <input type="checkbox" onclick="autoadvance(this, &#39;ties&#39;)" id="autoadvance_ties"> Auto-advance 
+    
+    <hr>
+    <input type="button" value="prev" onclick="prev(&#39;ties&#39;)">
+    <input type="button" value="next" onclick="next(&#39;ties&#39;)">
+  </div>
+</div>
+
+
+
+<script>
+process_states("ties", [
+  {"player0_hand":[12,9,8,8,1],"player1_hand":[12,9,8,8,1],"next_player":0,"type":"new_hand"},
+  {"move":{"card":12,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":12,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"player0_tricks":0,"type":"trick_over"},
+  {"move":{"card":9,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":9,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"player0_tricks":0,"type":"trick_over"},
+  {"type":"player_move","move":{"type":"offer_challenge"},"moving_player":0},
+  {"type":"player_move","move":{"type":"accept_challenge"},"moving_player":1},
+  {"move":{"card":8,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":8,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"player0_tricks":0,"type":"trick_over"},
+  {"move":{"card":8,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":8,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"player0_tricks":0,"type":"trick_over"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":0,"type":"player_move"},
+  {"move":{"card":1,"type":"play_card"},"moving_player":1,"type":"player_move"},
+  {"player1_tricks":0,"player0_tricks":0,"type":"trick_over"},
+  {"player0_score":0,"type":"new_hand_score","player1_score":0}
+])
+set_to_state("ties", boardinfos["ties"].states[0])
+</script>
+
+<h2>API</h2>
+
+<p>Your entry in the Barracuda Programming Contest must connect to the
+programming contest server with TCP, receive queries, and send back
+results, using a simple custom protocol.</p>
+
+<p>This section will document the socket protocol, and what queries may be
+sent on it. If you use one of the Barracuda-provided skeletons, connecting
+the socket and speaking the raw protocol will be handled for you, and
+you need only worry about what the messages are saying. Due to the wide
+variance between how languages handle JSON and how their type systems
+work, <b>please read the README in your chosen language's archive
+file</b> for more information. Use of some language implementations may
+require you to know more than others about the details of this protocol.</p>
+
+<p>Should you choose to use another language without a provided skeleton,
+Barracuda employees will try to provide as much help with the mechanical
+details as possible, but <i>caveat emptor</i>.</p>
+
+<h3>Binary Protocol</h3>
+
+<p>The socket protocol is a very simple one. The protocol consists of a series
+of messages. Each message is the following:</p>
+
+<ul><li>Four bytes which are a network-ordered unsigned integer. This
+integer indicates how many of the following bytes to read to obtain
+this message.</li>
+
+<li>That number of bytes of a JSON object. (Technically JSON
+is always defined to be UTF-8 but we guarantee it will always consist
+only of the 7-bit ASCII subset.)</li></ul>
+
+<p>Your replies follow the same protocol.</p>
+
+<h3>Use The Exact Types</h3>
+
+<p>Note that the server is expecting <i>precisely</i> what is outlined
+here. If the protocol calls for a "number", it <i>must</i> be a JSON
+number. It can not be a string containing a number. Those using the
+Barracuda-provided code should have this already taken care of, those
+implementing new drivers should beware.</p>
+
+<p>All messages the game server sends will be JSON objects that have
+a <tt>"type"</tt> field indicating their message type.
+
+</p><h3>Connection</h3>
+
+<p>Open a standard TCP socket to port 9999 of this server. Your team
+affiliation will be identified by matching your apparent source IP to the
+source IP you gave on <a href="http://cuda.contest/umich/edit_team">your team's page</a>. If a match
+could not be located, the server will immediately send down a JSON message
+that looks like the following:</p>
+
+<pre>{"type": "error",
+ "seen_host": "10.2.88.12",
+ "message": "I don't know which team this connection..."}</pre>
+
+<p>The message will continue on beyond that. The <tt>"seen_host"</tt> field will
+contain the IP the server believes this connection is from. The TCP socket
+will then close.</p>
+
+<p>If the server does recognize your IP, it will return an acknowledgment
+message. Its <tt>"type"</tt> will be <tt>"greetings_program"</tt>,
+the <tt>"team_id"</tt> field will contain the team ID the contest server
+believes you have, and other fields may exist which can be ignored.</p>
+
+<p>If you lose connection during a game, if you reconnect quickly enough,
+you may receive a query or a message about a game in progress. You then
+have the opportunity to recover. However, please ensure you do not
+pound the contest server with endless connection attempts. The provided
+skeletons implement a wait period before attempting a reconnect.</p>
+
+<h3>Move Request</h3>
+
+<p>A move request is a JSON object with a <tt>"type"</tt> string
+of <tt>"request"</tt>. It contains the following elements:</p>
+
+<ul><li><tt>"request"</tt>: This will be a string containing one of two
+values:
+
+<ul><li><tt>"request_card"</tt>: It is your turn to play a card. Consult
+the <tt>"can_challenge"</tt> in the game state for whether or not you can
+challenge. Consult the <tt>"card"</tt> element of the game state to see
+what the card your opponent may have played is, if appropriate.</li>
+
+<li><tt>"challenge_offered"</tt>: A challenge has been offered to
+you.</li></ul></li>
+
+<li><tt>"remaining"</tt>: A floating point number indicating the approximate
+number of seconds you have to make this move.</li>
+
+<li><tt>"request_id"</tt>: An integer that identifies this request. It
+must be sent back in your response as the <tt>"request_id"</tt> field.</li>
+
+<li><tt>"state"</tt>: This contains a representation of the current
+state of the game. It has the following elements:
+
+<ul><li><tt>"hand"</tt>: This is an array containing integers representing
+your cards. Cards are numbered 1 through 13 inclusive. 13 is the highest
+card.</li>
+
+<li><tt>"card"</tt>: If a card is currently "on the table", this field will
+exist and have an integer representing the card. If there is no card on the
+table, this field will not be present.</li>
+
+<li><tt>"hand_id"</tt>: This begins at the integer 1 for the first
+hand, then is incremented for each hand played within a game. As that
+implies, these are <i>not</i> globally unique, just unique within a
+given game.</li>
+
+<li><tt>"game_id"</tt>: The identifier for this game. This can be
+used to look up the game on this website.</li>
+
+<li><tt>"your_tricks"</tt>: An integer representing the number of tricks
+you have taken so far in this hand.</li>
+
+<li><tt>"their_tricks"</tt>: An integer representing the number of
+tricks your opponent has taken so far in this hand.</li>
+
+<li><tt>"can_challenge"</tt>: A Boolean. If true, you may legally issue a
+challenge. If false, you may not.</li>
+
+<li><tt>"in_challenge"</tt>: A Boolean. If true, it indicates that this
+hand has had someone accept a challenge, and the winner takes the entire
+game.</li>
+
+<li><tt>"total_tricks"</tt>: An integer representing the total number
+of tricks played in this hand. (It may be less than <tt>your_tricks +
+their_tricks</tt> if there was a tie.)</li>
+
+<li><tt>"your_points"</tt>: An integer representing the number of points you
+have in this game.</li>
+
+<li><tt>"opponent_id"</tt>: This is the team ID of the team you are playing,
+as an integer. This will remain constant for a given team throughout the
+competition, regardless of team name or tagline changes.</li>
+
+<li><tt>"their_points"</tt>: An integer representing the number of points
+your opponent has in this game.</li>
+
+<li><tt>"player_number"</tt>: This will be 0 if you went first in the game,
+1 if you went second. This is the same number that will be sent as the
+result of the <tt>"by"</tt> portion of
+the <tt>"trick_won"</tt>, <tt>"hand_won"</tt>, and <tt>"game_won"</tt>
+messages.</li></ul></li></ul>
+
+<p>You must reply with a JSON object whose <tt>"type"</tt>
+is <tt>"move"</tt>, with the <tt>"request_id"</tt> copied from the request,
+and whose <tt>"response"</tt> is one of the following legal objects:</p>
+
+<p>If the request was a <tt>"request_card"</tt>, you must reply with:</p>
+
+<ul><li>An object with <tt>"type"</tt> set to <tt>"play_card"</tt>, and
+a <tt>"card"</tt> set to an integer representing the card in your hand
+you wish to play. (That is, if you want to play a 10, return a 10. This
+is <i>not</i> an index, it is the card number itself.)</li>
+
+<li>If you are allowed to offer a challenge, an object with <tt>"type"</tt>
+set to <tt>"offer_challenge"</tt>, and no other attributes.</li></ul>
+
+<p>If the request was a <tt>"challenge_offered"</tt>, you must reply with
+  one of:</p>
+
+<ul><li>An object with the <tt>"type"</tt> set
+to <tt>"accept_challenge"</tt> to accept it.</li>
+
+<li>An object with the <tt>"type"</tt> set to <tt>"reject_challenge"</tt>
+to reject it.</li></ul>
+
+<p>For example, the entire JSON message to reject the challenge would look
+like this (where <tt>"request_id"</tt> is <tt>1</tt>):</p>
+
+<pre>{"type":"move","request_id":1,"response":{"type":"reject_challenge"}}</pre>
+
+<h3>Results</h3>
+
+<p>Once a player has made their move, information about the results of the
+move will be sent to the players. A given move will generate all the result
+information described below, as appropriate to the situation. Results will
+be a message with the <tt>"type"</tt> of <tt>"result"</tt>, and the actual
+result object in the <tt>"result"</tt> field. Additionally, at this level,
+all results will remind you of <i>your</i> player number with a field called
+<tt>"your_player_num"</tt> as an integer.</p>
+
+<p>If the trick was won as the result of the last move, the result
+object will be of type <tt>"trick_won"</tt>, the <tt>"by"</tt> field
+will contain the player number of the winning player, and the <tt>"card"</tt>
+field will contain the <i>last card played in the trick</i>. This is <i>not</i>
+the winning card, this is the <i>last card played</i>. Both players will
+receive this.</p>
+
+<p>If the trick was tied, the result object will be of
+type <tt>"trick_tied"</tt>, with no other fields. Both players will
+receive this.</p>
+
+<p>If the hand was completed as the result of the last move, the result object
+will be of type <tt>"hand_done"</tt>. If the hand was won by a player,
+the <tt>"by"</tt> field will contain the player number of the winning
+player. If the hand was tied, there will be no such field. Both players
+will receive this.</p>
+
+<p>If the game is now over as a result of the last move, the result object
+will be of type <tt>"game_won"</tt>, and the <tt>"by"</tt> field will
+contain the player number of the winning player. No further requests
+will be made with the game ID from this game.</p>
+
+<p>If there was an error, the result object will be of
+type <tt>"error"</tt>, and the <tt>"reason"</tt> field will attempt
+to describe the error. Only the error-making player will receive this.</p>
+
+<p>If none of these conditions was met, but the play was valid, the
+result object will be of type <tt>"accepted"</tt>, indicating a legal move.
+Only the player who made the move will receive this.</p>
+
+<p>When receiving more than one
+of <tt>"trick_won"</tt>, <tt>"hand_done"</tt>, or <tt>"game_won"</tt>,
+they will arrive in that order. Note that it is possible to receive a
+<tt>"hand_done"</tt> with no <tt>"trick_won"</tt>, in the case of a
+rejected challenge.</p>
+
+<h1>Test Bot</h1>
+
+<p>If you would like to test your bot without it being "live", connect to
+the contest server, but use port 19999. After the connection message is
+sent out, you will be immediately placed into a game against a very stupid
+opponent.</p>
+
+<p>Note this opponent will not test the full range of possible inputs
+your bot may receive; for instance, the test box will never issue a
+challenge.</p>
+
+<h1>Prepared Clients</h1>
+
+<p>Barracuda Networks uses a lot of open source software, and that means
+meeting that software in its own language. If you can name it, there's a
+decent chance we use it. Since this year we're handing out functioning
+clients in a <a href="http://cuda.contest/umich/rules#VM">functioning VM</a>, this may be an interesting opportunity to
+try out a language you've had your eye on. Here's the set of prepared
+clients we've prepared this year, along with some editorial comments on
+whether you should consider using it. Lines of Code determined
+by <tt>cloc</tt> and a bit of judgment (does not include any shipped
+JSON libraries).</p>
+
+<table class="languages">
+<tbody><tr><th>Language</th><th>Editorial Comments</th><th>LOC</th></tr>
+<tr>
+  <td><a href="http://cuda.contest/static/c.zip">C</a></td>
+  <td>The Grand Matron of modern programming languages. If you want this,
+      you know it.
+
+      <br><br>But, if you're unsure... it's not a coincidence that it has the
+         highest line count of any language here.</td>
+  <td>814</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/c++.zip">C++</a></td>
+  <td>C's bigger, badder son. If you want this, you know it.
+
+    <br><br>Again, though, it's not a coincidence that it's on the higher end
+         of line count. If you're not sure, something with Garbage
+         Collection for a contest like this might be a better idea.</td>
+  <td>494</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/elisp.zip">ELisp</a></td>
+  <td>Wait, what? Emacs Lisp? One of our programmers got inspired. Works, but since
+  emacs can't (quite!) do threading, locks your <strike>editor</strike>
+  true OS while it runs.</td>
+  <td>107</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/go.zip">Go</a></td>
+  <td>An up-and-coming language from Google, combining some of the best of
+  the scripting world with pervasive use of interfaces with some of the
+  best of the traditional statically-typed world. If you think you want to
+  do something with multiple processors, one of the best choices on this
+  list, but otherwise, you won't really be exercising Go's strengths much
+  here.</td>
+  <td>157</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/haskell.zip">Haskell</a></td>
+  <td>Forcibly expand your brain in directions you didn't know existed. If
+  you've dabbled in Haskell already, this might be a good chance to try it
+  on something a bit more real. I can't recommend this otherwise with a
+  straight face though.<br><br>The game-playing engine for the contest is
+  implemented in Haskell.</td>
+  <td>203</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/java.zip">Java</a></td>
+  <td>The workhorse of the modern era.</td>
+  <td>430</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/nodejs.zip">JavaScript</a></td>
+  <td>Making a bid to escape the client, a battle-tested scripting
+  language. The JS in JSON. This client runs on Node; as with Go,
+  you may not necessarily have a lot of chance to run with Node's
+  advantages, but it's a solid language for the contest.</td>
+  <td>124</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/lua.zip">Lua</a></td>
+  <td>The scripting language who can go toe-to-toe with C in
+  performance via LuaJIT. Barracuda uses this quite extensively in some
+  places where we need both performance and scripting.</td>
+  <td>40</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/perl.zip">Perl</a></td>
+  <td>The Grand Matron of scripting languages. An infrastructure language
+  for Barracuda appliances. Rumors of its death are greatly
+  exaggerated.</td>
+  <td>118</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/php.zip">PHP</a></td>
+  <td>The Grand Matron of web scripting languages. (Maybe I need a new
+  metaphor.) It also works just fine outside of the web server, it just
+  doesn't make as much of a fuss as Node does. Also extensively used at
+  Barracuda on our cloud products.</td>
+  <td>582</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/python.zip">Python</a></td>
+  <td>Perl Done Right. Also on the curriculum at the University of
+  Michigan, and almost the simplest client we have here, support code and
+  all. Highly recommended. Even if you do not currently know it.
+
+  <br><br>The contest website is implemented in Python.</td>
+  <td>58</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/scala.zip">Scala</a></td>
+  <td>As Java becomes a bit <i>passé</i>, the JVM itself is getting new
+  lease on life from the new generation of JVM languages, and Scala is one
+  of the main contenders. Same recommendation as Haskell; if you've already
+  dabbled, this is a great chance to dig in, but I can't recommend if
+  you've never heard of it.</td>
+  <td>206</td>
+</tr>
+<tr>
+  <td><a href="http://cuda.contest/static/tcl.zip">Tcl</a></td>
+  <td>The best scripting language you've never heard of. Arguably
+  pioneered the idea of deeply embedding an event loop into the runtime of
+  a language, putting it about 10-15 years ahead of its time. Also had a
+  powerful built-in UI, though we don't use it here. A bit odd,
+  though.</td>
+  <td>104</td>
+</tr>
+</tbody></table>
+
+<p>
+
+<a name="VM"></a>
+</p><h2>Virtual Machine Image (VirtualBox)</h2>
+
+<p>For those interested, we have prepared a VirtualBox VM image of Ubuntu
+Server 12.04 preloaded with the runtimes/libraries for the languages listed
+above. Following are instructions for deploying this VM:
+
+</p><ol>
+<li><a href="https://www.virtualbox.org/wiki/Downloads">Install VirtualBox</a>.
+
+</li><li><a href="http://www.vagrantup.com/downloads.html">Install Vagrant</a>.
+On Windows 8, when installing Vagrant, if an error/smart screen appears, click "More Info" then "Run Anyway".
+
+</li><li>Download the <tt>Vagrantfile</tt> for your platform:
+  <ul>
+  <li><a href="http://www.contest/static/Vagrantfile">Linux/Mac</a>
+  </li><li><a href="http://www.contest/static/windows/Vagrantfile">Windows</a>
+  </li></ul>
+Be sure to place the <tt>Vagrantfile</tt> in a new directory by itself
+(e.g., <tt>~/Downloads/cuda-contest-vm/</tt>). Make sure the file does not
+have an extension -- Windows may save it as <tt>Vagrantfile.txt</tt>, which
+is <strong>not</strong> what you want.
+
+</li><li>Change to the directory where you saved the <tt>Vagrantfile</tt>:
+  <ul>
+  <li>Windows: <tt>Start | Run | cmd</tt> to get command prompt,
+then <tt>cd</tt> to the directory where you saved the <tt>Vagrantfile</tt>.
+  </li><li>Mac: <tt>Applications | Utilities | Terminal</tt> to get command prompt,
+  then <tt>cd</tt> to the directory where you saved the <tt>Vagrantfile</tt>.
+  </li></ul>
+
+</li><li>Run <tt>vagrant up</tt> in the same directory as
+the <tt>Vagrantfile</tt>. This will download the VM image and add it to
+VirtualBox. This may take a few minutes.
+
+</li><li>During installation, a directory named <tt>contest-bots</tt> that contains
+the sample bots will be created and will be shared between the host and the
+VM. You can update this code from either the host or the VM.
+
+</li><li>To get a shell on the VM:
+  <ul>
+  <li>Linux/Mac: run <tt>vagrant ssh</tt> in the same directory as
+  the <tt>Vagrantfile</tt>
+  </li><li>Windows: the VM will boot with a GUI
+    <ul>
+    <li>At the login prompt, log in as user <tt>vagrant</tt> with
+  password <tt>vagrant</tt>.
+    </li></ul>
+  </li></ul>
+  This will log you into the VM as the <tt>vagrant</tt> user.  The sample bot
+  code is contained in <tt>/vagrant/contest-bots</tt>.
+
+</li><li>To stop the VM, run <tt>vagrant halt</tt>.
+</li></ol>
+
+<p>
+
+</p><h2>General</h2>
+
+<ul>
+<li>Your program will not be asked to participate in more than one game at
+a time, so a single-threaded implementation will be fine. (This year,
+even requesting a run against a test bot will be in a separate network
+connection, probably in a different process.)</li>
+
+<li>In general, in fairness for all contestants, there will be little
+"mercy" given for non-functional bots. If your turn comes up in a
+game <b>or the final tournament</b> and your bot is unreachable by our
+driver for any reason other than the plain malfunctioning of our driver
+or the network as a whole, your turn may be scored as timed out. While
+modifications to your bot can be made at any time, we <b>strongly
+strongly recommend</b> against doing so during the final round of the
+contest. However, you are free to modify your bot at any time at your own
+risk, even mid-game. Emphasize <i>at your own risk</i>. People have
+indeed modified their functional bots into non-functional bots during
+the tournament at previous contests.</li>
+
+<li>Yes, it is perfectly legal to hold your AI in reserve and register it
+only for the single-elimination, prize-winning tournament portion of the
+competition. However, be aware that you will be facing down the people
+who have been testing their bots against each other and tuning
+and tweaking them in real "battle" conditions. Your choice.</li>
+
+</ul>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+
+<script type="text/javascript">var vglnk = vglnk || {api_url: '//api.viglink.com/api', key: '0dff9ade2d1125af6c910069b6d6e155'};</script><script type="text/javascript" async="" src="./Rules_files/vglnk.js"></script></body></html>

@@ -1,0 +1,628 @@
+nput_tiny {
+  width: 50px;
+}
+.input_small {
+  width: 100px;
+}
+.input_medium {
+  width: 150px;
+}
+.input_large {
+  width: 200px;
+}
+.input_xlarge {
+  width: 250px;
+}
+.input_xxlarge {
+  width: 300px;
+}
+.input_full {
+  width: 100%;
+}
+/*
+  Added via JS to <textarea> and class="input_full".
+  Applies only to IE7. Other browsers don't need it.
+*/
+.input_full_wrap {
+  display: block;
+  padding-right: 8px;
+}
+/* `UI Consistency
+----------------------------------------------------------------------------------------------------*/
+::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+input[type="search"]::-webkit-search-decoration {
+  display: none;
+}
+input,
+button,
+select,
+textarea {
+  margin: 0;
+  vertical-align: middle;
+}
+input[type="radio"], input[type="checkbox"] {
+  position: relative;
+  vertical-align: top;
+  top: 3px;
+  /* IE8, IE9, IE10 */
+
+  top: 0\0;
+  /* IE7 */
+
+  *top: -3px;
+}
+/* iPad */
+@media (-webkit-min-device-pixel-ratio: 1) and (max-device-width: 1024px) {
+  input[type="radio"], input[type="checkbox"] {
+    vertical-align: baseline;
+    top: 2px;
+  }
+}
+/* iPhone 3 */
+@media (-webkit-min-device-pixel-ratio: 1) and (max-device-width: 480px) {
+  input[type="radio"], input[type="checkbox"] {
+    vertical-align: baseline;
+    top: 0;
+  }
+}
+/* iPhone 4 */
+@media (-webkit-min-device-pixel-ratio: 2) and (max-device-width: 480px) {
+  input[type="radio"], input[type="checkbox"] {
+    vertical-align: baseline;
+    top: 0;
+  }
+}
+button,
+input[type="reset"],
+input[type="submit"],
+input[type="button"] {
+  background: #0477B6;
+  text-transform: capitalize;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #FFF;
+  outline: 0;
+  overflow: visible;
+  padding: 8px 20px;
+  width: auto;
+  /* IE7 */
+
+  *padding-top: 2px;
+  *padding-bottom: 0px;
+}
+button {
+  /* IE7 */
+
+  *padding-top: 1px;
+  *padding-bottom: 1px;
+}
+textarea,
+select,
+input[type="date"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"] {
+  -webkit-appearance: none;
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0;
+  border-radius: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding;
+  background-clip: padding-box;
+  background-color: #fff;
+  border: 1px solid;
+  border-color: #848484 #c1c1c1 #e1e1e1;
+  color: #000;
+  outline: 0;
+  padding: 2px 3px;
+  font-size: 13px;
+  /*
+    Leaving out Helvetica Neue, to not throw off size="..."
+    on inputs. Arial is more reliable, on Windows and OS X.
+  */
+
+  font-family: Arial, 'Liberation Sans', FreeSans, sans-serif;
+  height: 1.8em;
+  /* IE7 */
+
+  *padding-top: 2px;
+  *padding-bottom: 1px;
+  *height: auto;
+}
+/*
+  Separate rule for Firefox.
+  Separate rule for IE, too.
+  Cannot stack with WebKit's.
+*/
+::-webkit-input-placeholder {
+  color: #888;
+}
+input:-moz-placeholder, textarea:-moz-placeholder {
+  color: #888;
+}
+input.placeholder_text, textarea.placeholder_text {
+  color: #888;
+}
+:invalid {
+  /*
+    Suppress red glow that Firefox
+    adds to form fields by default,
+    even when user is still typing.
+  */
+
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+button:focus,
+button:active,
+input:focus,
+input:active,
+select:focus,
+select:active,
+textarea:focus,
+textarea:active {
+  -moz-box-shadow: #06f 0 0 7px;
+  -webkit-box-shadow: #06f 0 0 7px;
+  box-shadow: #06f 0 0 7px;
+  /* for Opera */
+
+  z-index: 1;
+}
+input[type="file"]:focus,
+input[type="file"]:active,
+input[type="radio"]:focus,
+input[type="radio"]:active,
+input[type="checkbox"]:focus,
+input[type="checkbox"]:active {
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+select[disabled],
+textarea[disabled],
+input[type="date"][disabled],
+input[type="datetime"][disabled],
+input[type="datetime-local"][disabled],
+input[type="email"][disabled],
+input[type="month"][disabled],
+input[type="number"][disabled],
+input[type="password"][disabled],
+input[type="search"][disabled],
+input[type="tel"][disabled],
+input[type="text"][disabled],
+input[type="time"][disabled],
+input[type="url"][disabled],
+input[type="week"][disabled] {
+  background-color: #eee;
+}
+button[disabled],
+input[disabled],
+select[disabled],
+select[disabled] option,
+select[disabled] optgroup,
+textarea[disabled] {
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  color: #888;
+  cursor: default;
+}
+textarea, select[size], select[multiple] {
+  height: auto;
+}
+/* Tweaks for Safari + Chrome. */
+@media (-webkit-min-device-pixel-ratio: 0) {
+  select {
+    background-image: url(../img/select_arrow.gif);
+    background-repeat: no-repeat;
+    background-position: right center;
+    padding-right: 20px;
+  }
+  select[size], select[multiple] {
+    background-image: none;
+    padding: 0;
+  }
+  ::-webkit-validation-bubble-message {
+    box-shadow: rgba(0, 0, 0, 0.5) 0 0 5px;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #666666), color-stop(1, #000000));
+    border: 1px solid;
+    border-color: #747474 #5e5e5e #4f4f4f;
+    color: #fff;
+    font: 13px/17px 'Lucida Grande', Arial, 'Liberation Sans', FreeSans, sans-serif;
+    overflow: hidden;
+    padding: 15px 15px 17px;
+    text-shadow: #000 0 0 1px;
+    height: 16px;
+  }
+  ::-webkit-validation-bubble-arrow, ::-webkit-validation-bubble-top-outer-arrow, ::-webkit-validation-bubble-top-inner-arrow {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    background: #666;
+    border: 0;
+  }
+}
+textarea {
+  min-height: 40px;
+  overflow: auto;
+  resize: vertical;
+  width: 100%;
+}
+optgroup {
+  color: #000;
+  font-style: normal;
+  font-weight: normal;
+}
+/* `IE6
+----------------------------------------------------------------------------------------------------*/
+/*
+  Everything below this line is for IE6.
+  Delete it if you don't support it! :)
+
+  Classes are added dynamically via JS,
+  because IE6 doesn't support attribute
+  selectors: .ie6_button, .ie6_input, etc.
+
+  Note: These style rules are somewhat
+  duplicated because IE6 bombs out when
+  it sees attribute selectors. Example:
+
+  .ie6_button {
+    This works in IE6.
+  }
+
+  .ie6_button,
+  input[type=submit] {
+    This doesn't work.
+  }
+*/
+.ie6_button, * html button {
+  background: #dddddd url(../img/button.png) repeat-x;
+  border: 1px solid;
+  border-color: #ddd #bbb #999;
+  cursor: pointer;
+  color: #333;
+  font: bold 12px/1.2 Arial, sans-serif;
+  padding: 2px 10px 0px;
+  overflow: visible;
+  width: auto;
+}
+* html button {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.ie6_input, * html textarea, * html select {
+  background: #fff;
+  border: 1px solid;
+  border-color: #848484 #c1c1c1 #e1e1e1;
+  color: #000;
+  padding: 2px 3px 1px;
+  font-size: 13px;
+  font-family: Arial, sans-serif;
+  vertical-align: top;
+}
+* html select {
+  margin-top: 1px;
+}
+.placeholder_text, .ie6_input_disabled, .ie6_button_disabled {
+  color: #888;
+}
+.ie6_input_disabled {
+  background: #eee;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: #EBEBEB;
+  font-family: Arial;
+  font-size: 16px;
+  color: #555;
+  line-height: 1.5;
+}
+p {
+  margin-bottom: 25px;
+}
+ul {
+  margin-left: 35px;
+}
+li {
+  margin-bottom: 10px;
+  list-style-type: square;
+}
+#cloud_banner {
+  background: #363636;
+  height: 140px;
+}
+#cloud_banner img {
+  text-decoration: none;
+}
+#cloud_banner a {
+  text-decoration: none;
+}
+#cloud_banner_bottom {
+  background: url('../img/header_pattern.png');
+  width: 100%;
+  height: 22px;
+}
+#cloud_banner h3 {
+  color: rgb(186, 186, 186);
+  font-weight: bold;
+  text-transform: uppercase;
+  float: left;
+  text-align: center;
+  margin-top: 5px;
+}
+.banner_inner {
+   width: 80%;
+  max-width: 960px;
+  min-width: 800px;
+  margin: 0 auto;
+}
+#cloud_logo {
+  background: url('../img/barracuda_logo.png');
+  width: 236px;
+  height: 56px;
+  display: block;
+  float: right;
+  text-indent: -1000px;
+  margin-top: 63px;
+  overflow: hidden;
+}
+.cloud_subtitle {
+  width: 375px;
+  float: left;
+  margin-top: 20px;
+}
+.cloud_subtitle img {
+  margin: 0 auto;
+  display: block;
+}
+.cloud_page {
+  width: 80%;
+  max-width: 960px;
+  min-width: 800px;
+  margin: 0 auto 100px;
+}
+#users_pane_body td {
+  padding: 12px 0;
+}
+.homepage_wrapper {
+  width: 492px;
+}
+.registration_form th {
+  padding-right: 20px;
+}
+a {
+  color: #466AB0;
+}
+hr {
+  border-top: 1px solid #0477B6;
+  height: 1px;
+  width: 100%;
+  margin: 0 auto 20px auto;
+  border-bottom: none;
+}
+.cloud_title h2 {
+  font-size: 38px;
+  color: rgb(24, 117, 187);
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 32px;
+  border-top-left-radius: 20px;
+  -webkit-border-top-left-radius: 20px;
+  -moz-border-radius-topleft: 20px;
+  border-top-right-radius: 20px;
+  -webkit-border-top-right-radius: 20px;
+  -moz-border-radius-topright: 20px;
+  -pie-border-radius: 20px 20px 0 0;
+  -x-behavior: url(..//lib/pie.htc);
+}
+table:not(.leaderboard) {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+form table th, form table td, form table tr {
+  border: none !important;
+  background: none !important;
+}
+table.leaderboard {
+  border-collapse: collapse;
+  width: 100%;
+}
+table.leaderboard td, table.leaderboard th {
+  text-align: left;
+  padding: 5px;
+}
+table.leaderboard th {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+table.leaderboard td.leaderboardName, table.leaderboard th.leaderboardName {
+  white-space: nowrap;
+  font-weight: bold;
+  color: rgb(24, 117, 187);
+}
+table.leaderboard td:last-child, table.leaderboard th:last-child {
+  text-align: center;
+}
+table.leaderboard td:last-child:not(th), table.leaderboard th:last-child:not(th) {
+  font-size: 20px;
+}
+table.leaderboard tr {
+  height: 85px;
+}
+table.leaderboard tr:nth-child(2n) {
+  background: #FFF;
+}
+table.leaderboard td.leaderboardTeamName, table.leaderboard td.leaderboardTeamTagline {
+  text-align: left;
+}
+.leaderboardTeamPos {
+  font-weight: bold;
+  width: 50px;
+  text-indent: 20px;
+}
+.leaderboardRating {
+  font-weight: bold;
+}
+.leaderboardTagline {
+  font-size: 14px;
+}
+form[action*="openid/forward"], form[action*="/register"] {
+  clear: both;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ccc;
+}
+form[action*="openid/forward"] label, form[action*="/register"] label {
+  font: bold 20px/40px georgia;
+  color: gray;
+  width: 40%;
+  text-align: right;
+  margin-right: 10px;
+  float: left;
+}
+form[action*="openid/forward"] input[type="email"],
+form[action*="/register"] input[type="email"],
+form[action*="openid/forward"] input[type="text"],
+form[action*="/register"] input[type="text"] {
+  font-family: georgia;
+  line-height: 24px;
+  font-size: 20px;
+  width: 40%;
+}
+form[action*="openid/forward"] input[type="submit"], form[action*="/register"] input[type="submit"] {
+  font-family: georgia;
+  font-size: 14px;
+  line-height: 14px;
+  padding: 10px;
+  position: relative;
+  margin-left: 5px;
+  -webkit-appearance: button;
+}
+form[action*="/register"] {
+  border-bottom: none;
+}
+form[action*="/register"] label {
+  width: 30%;
+}
+form[action*="email/login"], form {
+  padding-top: 20px;
+}
+form[action*="email/login"] table, form table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+form[action*="email/login"] table th, form table th {
+  font-size: 20px;
+  font-weight: normal;
+  color: gray;
+  width: 40%;
+  text-align: right;
+}
+form[action*="email/login"] table td:first-child, form table td:first-child {
+  font: normal 20px/40px georgia;
+  width: 40%;
+  text-align: right;
+}
+form[action*="email/login"] table td label, form table td label {
+  font: bold 20px/40px georgia;
+  display: block;
+  text-align: right;
+}
+form[action*="email/login"] table th:after, form table th:after {
+  content: ":";
+}
+form[action*="email/login"] table td:last-child, form table td:last-child {
+  padding-left: 10px;
+}
+form[action*="email/login"] table td:last-child select,
+form table td:last-child select,
+form[action*="email/login"] table td:last-child input[type="text"],
+form table td:last-child input[type="text"],
+form[action*="email/login"] table td:last-child input[type="email"],
+form table td:last-child input[type="email"],
+form[action*="email/login"] table td:last-child input[type="password"],
+form table td:last-child input[type="password"] {
+  font-family: georgia;
+  line-height: 24px;
+  font-size: 20px;
+  width: 90%;
+}
+form[action*="email/login"] table td[colspan="2"], form table td[colspan="2"] {
+  padding-top: 10px;
+  padding-left: 40%;
+}
+form[action*="email/login"] table td[colspan="2"] input[type="submit"], form table td[colspan="2"] input[type="submit"] {
+  font-family: georgia;
+  font-size: 14px;
+  line-height: 14px;
+  padding: 10px;
+  margin-left: 10px;
+  top: -3px;
+  position: relative;
+  -webkit-appearance: button;
+  float: left;
+}
+form[action*="email/login"] table td[colspan="2"] a, form table td[colspan="2"] a {
+  float: left;
+  padding: 10px;
+  line-height: 14px;
+}
+
+span.winner { color: green }
+span.loser { color: red }
+span.draw { color: red; font-weight: bold }
+div.load_error { color: red; text-align: center }
+
+h3 { font-weight: normal }
+
+/*table { width: 100%; }
+form table td input[type="text"] {
+	float: left;
+}
+*/
+/*label {
+	display: block;
+	text-align: right;
+}
+input[type="submit"] {
+	margin: 0 auto;
+}
+*/
+/*
+// TO INSERT INTO CONTEST PAGE:
+var h = document.querySelectorAll('head')[0];
+h.removeChild(document.querySelectorAll('link')[0]);
+h.removeChild(document.querySelectorAll('link')[0]);
+h.removeChild(document.querySelectorAll('link')[0]);
+h.removeChild(document.querySelectorAll('link')[0]);
+var l = document.createElement('link');
+	l.setAttribute('rel', 'stylesheet');
+	l.setAttribute('href', 'http://sites.dkb/contest.css');
+	h.appendChild(l);
+*/
+
