@@ -70,7 +70,8 @@ public class Strategy {
                                                          Cards cards,
                                                          double threshold) {
     int[] hands = state.hand;
-    int targetWinTricksCount = state.your_tricks - state.their_tricks;
+    //int targetWinTricksCount = state.your_tricks - state.their_tricks;
+    int targetWinTricksCount = 0;
     
     for (int i = 0; i < hands.length; i++) {
       if (cards.getBiggerProb(hands[i]) > threshold) {
