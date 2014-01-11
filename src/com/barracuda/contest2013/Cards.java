@@ -46,6 +46,9 @@ public class Cards {
 	
 	// num of cards must be 5
 	public void addCard(int[] cards){
+		if (debugInfo)
+			System.out.println("func addCard()");
+		
 		int tmp = 0;
 		for (int i = 3; i >= 0; i--) {
 			for (int j = 0; j <= i; j++) {
@@ -72,6 +75,8 @@ public class Cards {
 	
 	// every time a message is received, call this function to update
 	public void update(Message message) {
+		if (debugInfo)
+			System.out.println("func update()");
 		if (message.type.equals("request")) {
 			MoveMessage m = (MoveMessage)message;
 			if (m.request.equals("request_card")) {
@@ -112,7 +117,21 @@ public class Cards {
 				return;
 			}
 			if (r.result.type.equals("trick_tied")) {
-				myHistory.add(new Integer(oppoHistory.get(oppoHistory.size()-1).intValue()));
+				if (debugInfo)
+					System.out.println("Trick_tied");
+				int cardValue;
+				if (myLead) {
+					cardValue = myHistory.get(myHistory.size()-1).intValue();
+					cardRemain[cardValue-1]--;
+					allCardNum--;
+					oppoHistory.add(new Integer(cardValue));
+				}
+				else {
+					cardValue = oppoHistory.get(oppoHistory.size()-1).intValue();
+					myHistory.add(new Integer(cardValue));
+				}
+				
+				return;
 			}
 			if (r.result.card != null) {
 				int cardValue = r.result.card.intValue();
@@ -130,6 +149,7 @@ public class Cards {
 	}
 	
 	public void updateMyHistory(int no) {
+		
 		if (myLead) {
 			myHistory.add(new Integer(no));
 		}
