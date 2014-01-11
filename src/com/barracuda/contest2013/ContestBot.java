@@ -87,15 +87,22 @@ public class ContestBot {
 				  // offer card
 					// int i = (int)(Math.random() * m.state.hand.length);
 			    // select the smallest to pick the card
-				  	int selectedCard = Strategy.findTheSmallestCard(m.state.hand);
-			    	if (debugInfo) {
-						System.out.print("Hands: ");
-						for (int j = 0; j < m.state.hand.length; j++) {
-							System.out.print(m.state.hand[j] + " ");
-						}
-						System.out.println();
-						System.out.println("Give out card: " +  selectedCard);
-			    	}
+			    
+			  	int selectedCard;
+			  	if (cardsState.myLead) {
+			  	  selectedCard = Strategy.findTheSmallestCard(m.state.hand);
+			  	} else {
+			  	  selectedCard = Strategy.findTheLeastBestCard(m.state.hand, m.state.card);
+			  	}
+			  	Strategy.findTheSmallestCard(m.state.hand);
+		    	if (debugInfo) {
+  					System.out.print("Hands: ");
+  					for (int j = 0; j < m.state.hand.length; j++) {
+  						System.out.print(m.state.hand[j] + " ");
+  					}
+  					System.out.println();
+  					System.out.println("Give out card: " +  selectedCard);
+		    	}
 					cardsState.updateMyHistory(selectedCard);
 					return new PlayCardMessage(m.request_id, selectedCard);
 				}
