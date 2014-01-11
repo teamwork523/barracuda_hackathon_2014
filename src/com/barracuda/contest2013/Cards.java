@@ -7,6 +7,7 @@ public class Cards {
 	public int allCardNum; // sum of cardRemain, including hidden cards
 	public int hiddenNum;
 	public boolean myLead;
+	public boolean debugInfo = true;
 	
 	public ArrayList<Integer> oppoHistory;
 	public ArrayList<Integer> myHistory;
@@ -79,7 +80,8 @@ public class Cards {
 				if (m.state.hand.length == 5) {
 					addCard(m.state.hand);
 				}
-				System.out.println("last card in request: " + m.state.card);
+				if (debugInfo)
+					System.out.println("last card in request: " + m.state.card);
 				if (m.state.card > 0) {
 					cardRemain[m.state.card-1]--;
 					allCardNum--;
@@ -114,7 +116,8 @@ public class Cards {
 			}
 			if (r.result.card != null) {
 				int cardValue = r.result.card.intValue();
-				System.out.println("last card in result: " + cardValue);
+				if (debugInfo)
+					System.out.println("last card in result: " + cardValue);
 				if (myLead) {
 					cardRemain[cardValue-1]--;
 					allCardNum--;
