@@ -7,9 +7,11 @@ public class Cards {
 	public int[] myHiddenCard;
 	public int allCardNum; // sum of cardRemain, including hidden cards
 	public int hiddenNum;
-	public boolean myLead;
+	public static boolean myLead;
 	public boolean challangeRequest;
 	public boolean debugInfo = true;
+	public static int myWinGameNum = 0, oppoWinGameNum = 0, oppoContWinGameNum = 0;
+	public static int oppoID = -1, oppoPlayerNum, lastWinPlayerNum = -1;
 	
 	public ArrayList<Integer> oppoHistory;
 	public ArrayList<Integer> myHistory;
@@ -18,6 +20,7 @@ public class Cards {
 	
 	public Cards() {
 		cardRemain = new int[13];
+		myHiddenCard = new int[13];
 		resetCards();
 		
 		oppoHistory = new ArrayList<Integer>();
@@ -26,9 +29,43 @@ public class Cards {
 		myAvailCards = new ArrayList<Integer>();
 	}
 	
+	public static void updateGameStat(Message message) {
+		if (message.type.equals("request")) {
+			MoveMessage m = (MoveMessage)message;
+			if (m.request.equals("request_card")) {
+				if (m.state.opponent_id != oppoID) {
+					oppoID = m.state.opponent_id;
+					myWinGameNum = 0;
+					oppoWinGameNum = 0;
+					oppoContWinGameNum = 0;
+					if (myLead)
+						oppoPlayerNum = 1;
+					else
+						oppoPlayerNum = 0;						
+				}
+			}
+		}
+		else if (message.type.equals("result")) {
+			ResultMessage r = (ResultMessage)message;
+			// hand_done
+			if (r.result.type.equals("game_won")) {
+				if (r.result.by.intValue() == oppoPlayerNum) {
+					if (lastWinPlayerNum == oppoPlayerNum)
+						oppoContWinGameNum++;
+					else
+						oppoContWinGameNum = 1;
+					oppoWinGameNum++;
+				} else {
+					myWinGameNum++;
+				}
+			}
+		}
+	}
+	
 	public void resetCards() {
 		for (int i = 0; i < 13; i++) {
 			cardRemain[i] = 8;
+			myHiddenCard[i] = 0;
 		}
 		hiddenNum = 0;
 		allCardNum = 99;
@@ -81,6 +118,15 @@ public class Cards {
 		challangeRequest = true;
 	}
 	
+	public void addMyHiddenCard() {
+		System.out.print("My hidden cards: ");
+		for (int i = 0; i < myAvailCards.size(); i++) {
+			System.out.print(myAvailCards.get(i).intValue() + " ");
+			myHiddenCard[myAvailCards.get(i).intValue()-1]++;
+		}
+		System.out.println();
+	}
+	
 	// every time a message is received, call this function to update
 	public void update(Message message) {
 		if (debugInfo)
@@ -123,6 +169,7 @@ public class Cards {
 			// hand_done
 			if (r.result.type.equals("hand_done")) {
 				hiddenNum += (5 - oppoHistory.size());
+				addMyHiddenCard();
 				if (allCardNum - hiddenNum <= 4) {
 					// new shuffle cards
 					resetCards();
