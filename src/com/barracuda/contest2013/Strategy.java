@@ -66,10 +66,10 @@ public class Strategy {
   /************** Challenge Strategy ********************/
   /******************************************************/
   // Majority count to decide whether to propose/reject a challenge
-  public static boolean restMajorityGreaterThanThreshold(int[] hands, 
-                                                     GameState state, 
-                                                     Cards cards,
-                                                     double threshold) {
+  public static boolean restMajorityGreaterThanThreshold(GameState state, 
+                                                         Cards cards,
+                                                         double threshold) {
+    int[] hands = state.hand;
     int requiredWinTricksCount = state.your_tricks - state.their_tricks;
     
     for (int i = 0; i < hands.length; i++) {

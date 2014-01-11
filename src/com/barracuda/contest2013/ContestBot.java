@@ -74,19 +74,23 @@ public class ContestBot {
 			
 			// offer card and challenge
 			if (m.request.equals("request_card")) {
-				if (! m.state.can_challenge || Math.random() < 0.8) {
-					int i = (int)(Math.random() * m.state.hand.length);
+				//if (! m.state.can_challenge || Math.random() < 0.8) {
+			  if (!Strategy.restMajorityGreaterThanThreshold(m.state, cardsState, 0.5)) {
+			    // offer card
+					// int i = (int)(Math.random() * m.state.hand.length);
+			    // select the smallest to pick the card
+			    int selectedCard = Strategy.findTheSmallestCard(m.state.hand);
 					System.out.print("Hands: ");
 					for (int j = 0; j < m.state.hand.length; j++) {
 						System.out.print(m.state.hand[j] + " ");
 					}
 					System.out.println();
-					System.out.println("Give out card: " +  m.state.hand[i]);
-					cardsState.updateMyHistory(m.state.hand[i]);
-					return new PlayCardMessage(m.request_id, m.state.hand[i]);
+					System.out.println("Give out card: " +  selectedCard);
+					cardsState.updateMyHistory(selectedCard);
+					return new PlayCardMessage(m.request_id, selectedCard);
 				}
 				else {
-					
+					// offer challenge
 					System.out.println("Can C?" + m.state.can_challenge + " Challenge >>>>>>>>>>>>>>>>>>>>");
 					return new OfferChallengeMessage(m.request_id);
 				}
