@@ -13,7 +13,8 @@ public class ContestBot {
 	private final int port;
 	private int game_id = -1;
 	private Cards cardsState;
-
+	private boolean debugInfo = false;
+	
 	public ContestBot(String host, int port) {
 		this.host = host;
 		this.port = port;
@@ -61,7 +62,9 @@ public class ContestBot {
 			cardsState = new Cards();
 		}
 		cardsState.update(message);
-		System.out.print(cardsState.toString());
+		
+		if (debugInfo)
+			System.out.print(cardsState.toString());
 		
 		if (message.type.equals("request")) {
 			MoveMessage m = (MoveMessage)message;
@@ -75,29 +78,32 @@ public class ContestBot {
 			// offer card and challenge
 			if (m.request.equals("request_card")) {
 				//if (! m.state.can_challenge || Math.random() < 0.8) {
-			  if (!Strategy.restMajorityGreaterThanThreshold(m.state, cardsState, 0.5)) {
-			    // offer card
+			  if (m.state.can_challenge && !Strategy.restMajorityGreaterThanThreshold(m.state, cardsState, 0.8)) {
+						// offer challenge
+						if (debugInfo)
+							System.out.println("Can C?" + m.state.can_challenge + " Challenge >>>>>>>>>>>>>>>>>>>>");
+						return new OfferChallengeMessage(m.request_id);
+			  } else {
+				  // offer card
 					// int i = (int)(Math.random() * m.state.hand.length);
 			    // select the smallest to pick the card
-			    int selectedCard = Strategy.findTheSmallestCard(m.state.hand);
-					System.out.print("Hands: ");
-					for (int j = 0; j < m.state.hand.length; j++) {
-						System.out.print(m.state.hand[j] + " ");
-					}
-					System.out.println();
-					System.out.println("Give out card: " +  selectedCard);
+				  	int selectedCard = Strategy.findTheSmallestCard(m.state.hand);
+			    	if (debugInfo) {
+						System.out.print("Hands: ");
+						for (int j = 0; j < m.state.hand.length; j++) {
+							System.out.print(m.state.hand[j] + " ");
+						}
+						System.out.println();
+						System.out.println("Give out card: " +  selectedCard);
+			    	}
 					cardsState.updateMyHistory(selectedCard);
 					return new PlayCardMessage(m.request_id, selectedCard);
-				}
-				else {
-					// offer challenge
-					System.out.println("Can C?" + m.state.can_challenge + " Challenge >>>>>>>>>>>>>>>>>>>>");
-					return new OfferChallengeMessage(m.request_id);
 				}
 			}
 			// challenge offered, accept or reject
 			else if (m.request.equals("challenge_offered")) {
-				System.out.println("Accept Challenge <<<<<<<<<<<<<<<<<<");
+				if (debugInfo)
+					System.out.println("Accept Challenge <<<<<<<<<<<<<<<<<<");
 				return new AcceptChallengeMessage(m.request_id);
 				//return (Math.random() < 0.5)
 				//		? new AcceptChallengeMessage(m.request_id)
@@ -106,12 +112,13 @@ public class ContestBot {
 		}
 		else if (message.type.equals("result")) {
 			ResultMessage r = (ResultMessage)message;
-
-			System.out.print("Result type: " + r.result.type);
-			if (r.result.by != null) {
-				System.out.println(" " + r.result.by);
-			} else {
-				System.out.println();
+			if (debugInfo) {
+				System.out.print("Result type: " + r.result.type);
+				if (r.result.by != null) {
+					System.out.println(" " + r.result.by);
+				} else {
+					System.out.println();
+				}
 			}
 		}
 		else if (message.type.equals("error")) {
@@ -137,7 +144,7 @@ public class ContestBot {
 		Integer port = Integer.parseInt(args[1]);
 	 */
 		String host = "cuda.contest";
-		Integer port = Integer.parseInt("19999");
+		Integer port = Integer.parseInt("9999");
 		ContestBot cb = new ContestBot(host, port);
 		cb.run();
 	}
