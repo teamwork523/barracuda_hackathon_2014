@@ -537,7 +537,14 @@ public class BruteForceSearch {
 					}
 					
 					//bluffing
-					if (loseratio>0.7 && m.state.their_points > m.state.your_points+1){
+					if (loseratio>0.7 && m.state.their_points > m.state.your_points+2){
+						System.out.println("Decision: offer challenge");
+						cd.enableChallangeRequest();
+						return new OfferChallengeMessage(m.request_id);
+					}
+					
+					//bluffing
+					if (loseratio>0.6 && (cd.allCardNum-cd.hiddenNum+)  m.state.their_points > m.state.your_points+2){
 						System.out.println("Decision: offer challenge");
 						cd.enableChallangeRequest();
 						return new OfferChallengeMessage(m.request_id);
