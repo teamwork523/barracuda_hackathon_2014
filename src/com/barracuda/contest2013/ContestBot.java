@@ -86,7 +86,8 @@ public class ContestBot {
 					return new PlayCardMessage(m.request_id, m.state.hand[i]);
 				}
 				else {
-					System.out.println("Challenge >>>>>>>>>>>>>>>>>>>>");
+					
+					System.out.println("Can C?" + m.state.can_challenge + " Challenge >>>>>>>>>>>>>>>>>>>>");
 					return new OfferChallengeMessage(m.request_id);
 				}
 			}
@@ -111,6 +112,7 @@ public class ContestBot {
 		}
 		else if (message.type.equals("error")) {
 			ErrorMessage e = (ErrorMessage)message;
+			System.out.println("Error: " + e.message);
 			System.err.println("Error: " + e.message);
 
 			// need to register IP address on the contest server
