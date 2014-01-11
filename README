@@ -14,7 +14,12 @@ $ ant
 This will produce ContestBot.jar. You can then run the application from
 command line:
 
-$ java -jar ContestBot.jar <host> <port>
+// test with test server
+$ java -jar ContestBot.jar cuda.contest 19999
+
+// test online with other players
+$ java -jar ContestBot.jar cuda.contest 9999
+
 
 To remove build remnants and the jarfile:
 
