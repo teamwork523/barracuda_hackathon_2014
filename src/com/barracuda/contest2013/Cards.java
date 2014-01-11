@@ -4,9 +4,11 @@ import java.util.ArrayList;
 
 public class Cards {
 	public int[] cardRemain; // 0-12 -> 1-13
+	public int[] cardEstRemain;
 	public int allCardNum; // sum of cardRemain, including hidden cards
 	public int hiddenNum;
 	public boolean myLead;
+	public boolean challangeRequest;
 	public boolean debugInfo = true;
 	
 	public ArrayList<Integer> oppoHistory;
@@ -16,6 +18,7 @@ public class Cards {
 	
 	public Cards() {
 		cardRemain = new int[13];
+		cardEstRemain = new int[13];
 		resetCards();
 		
 		oppoHistory = new ArrayList<Integer>();
@@ -25,10 +28,13 @@ public class Cards {
 	}
 	
 	public void resetCards() {
-		for (int i = 0; i < 13; i++)
+		for (int i = 0; i < 13; i++) {
 			cardRemain[i] = 8;
+			cardEstRemain[i] = 8;
+		}
 		hiddenNum = 0;
 		allCardNum = 99;
+		challangeRequest = false;
 	}
 	
 	public double getBiggerProb(int no) {
@@ -87,13 +93,21 @@ public class Cards {
 				}
 				if (debugInfo)
 					System.out.println("last card in request: " + m.state.card);
-				if (m.state.card > 0) {
-					cardRemain[m.state.card-1]--;
-					allCardNum--;
-					oppoHistory.add(new Integer(m.state.card));
-					myLead = false;
+				if (!challangeRequest) {
+					if (m.state.card > 0) {
+						cardRemain[m.state.card-1]--;
+						allCardNum--;
+						oppoHistory.add(new Integer(m.state.card));
+						myLead = false;
+					} else {
+						myLead = true;
+					}
 				} else {
-					myLead = true;
+					if (m.state.card > 0) {
+						myLead = false;
+					} else {
+						myLead = true;
+					}
 				}
 			}
 			else if (m.request.equals("challenge_offered")) {
