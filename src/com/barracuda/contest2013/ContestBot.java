@@ -13,7 +13,6 @@ public class ContestBot {
 	private final int port;
 	private int game_id = -1;
 	private Cards cardsState;
-	private boolean debugInfo = false;
 	
 	public ContestBot(String host, int port) {
 		this.host = host;
@@ -56,7 +55,7 @@ public class ContestBot {
 
 	// roBAst contest bot
 	public PlayerMessage handleMessage(Message message) {
-		if (debugInfo)
+		if (cardsState.debugInfo)
 			System.out.println("----------------------- " + message.type + " --------------------------");
 		if (message.type.equals("request") && game_id != ((MoveMessage)message).state.game_id) {
 			System.out.println("New Cards");
@@ -64,7 +63,7 @@ public class ContestBot {
 		}
 		cardsState.update(message);
 		
-		if (debugInfo)
+		if (cardsState.debugInfo)
 			System.out.print(cardsState.toString());
 		
 		if (message.type.equals("request")) {
@@ -81,7 +80,7 @@ public class ContestBot {
 		}
 		else if (message.type.equals("result")) {
 			ResultMessage r = (ResultMessage)message;
-			if (debugInfo) {
+			if (cardsState.debugInfo) {
 				System.out.print("Result type: " + r.result.type);
 				if (r.result.by != null) {
 					System.out.println(" " + r.result.by);

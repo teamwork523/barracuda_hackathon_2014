@@ -70,15 +70,24 @@ public class Strategy {
                                                          Cards cards,
                                                          double threshold) {
     int[] hands = state.hand;
-    int requiredWinTricksCount = state.your_tricks - state.their_tricks;
+    //int targetWinTricksCount = state.your_tricks - state.their_tricks;
+    int targetWinTricksCount = 0;
     
     for (int i = 0; i < hands.length; i++) {
       if (cards.getBiggerProb(hands[i]) > threshold) {
-        requiredWinTricksCount++;
+        targetWinTricksCount++;
       }
     }
     
-    return (requiredWinTricksCount > 0) ? true : false;
+    int requiredWin;
+    
+    if (hands.length == 1) {
+      requiredWin = 0;
+    } else {
+      requiredWin = hands.length / 2;
+    }
+    
+    return (targetWinTricksCount > requiredWin) ? true : false;
   }
   
   public static PlayerMessage handleMessage(Message message, Cards cardsState) {
@@ -87,7 +96,7 @@ public class Strategy {
     // offer card and challenge
     if (m.request.equals("request_card")) {
       //if (! m.state.can_challenge || Math.random() < 0.8) {
-      if (m.state.can_challenge && restMajorityGreaterThanThreshold(m.state, cardsState, 0.8)) {
+      if (m.state.can_challenge && restMajorityGreaterThanThreshold(m.state, cardsState, 0.7)) {
           // offer challenge
           if (cardsState.debugInfo)
             System.out.println("Can C?" + m.state.can_challenge + " Challenge >>>>>>>>>>>>>>>>>>>>");
@@ -120,7 +129,7 @@ public class Strategy {
     else if (m.request.equals("challenge_offered")) {
       if (cardsState.debugInfo)
         System.out.println("Accept Challenge <<<<<<<<<<<<<<<<<<");
-      if (restMajorityGreaterThanThreshold(m.state, cardsState, 0.8)) {
+      if (restMajorityGreaterThanThreshold(m.state, cardsState, 0.7)) {
         return new AcceptChallengeMessage(m.request_id);
       }
       return new RejectChallengeMessage(m.request_id);
